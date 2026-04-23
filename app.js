@@ -30,7 +30,7 @@
   });
 
   // ── BACK BUTTON ──
-  backBtn.addEventListener('click', showWelcomeScreen);
+  backBtn.addEventListener('click', () => showWelcomeScreen());
 
   function setBackBtn(visible) {
     backBtn.classList.toggle('hidden', !visible);
