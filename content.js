@@ -196,7 +196,7 @@ ORDER BY tablespace_name;`
     {
       id: "sqlserver",
       name: "SQL Server",
-      color: "#CC2927",
+      color: "#2732cc",
       topics: [
         {
           id: "locks-sqlserver",
@@ -365,7 +365,7 @@ WITH RECOVERY;`
     {
       id: "postgresql",
       name: "PostgreSQL",
-      color: "#336791",
+      color: "#10ad45",
       topics: [
         {
           id: "locks-postgres",
@@ -447,6 +447,168 @@ WHERE cardinality(pg_blocking_pids(blocked.pid)) > 0;`
 FROM pg_stat_user_tables
 ORDER BY n_dead_tup DESC
 LIMIT 20;`
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      id: "mysql",
+      name: "MySQL",
+      color: "#F29111",
+      topics: [
+        {
+          id: "locks-mysql",
+          title: "Verificar e Matar Locks",
+          tags: ["lock", "bloqueio", "innodb", "kill", "processlist"],
+          description: "Identifica transações bloqueadas e encerra processos travados no MySQL/InnoDB.",
+          sections: [
+            {
+              type: "steps",
+              title: "Identificar locks",
+              items: [
+                {
+                  label: "Visão rápida de todos os processos ativos",
+                  command: "SHOW PROCESSLIST;"
+                },
+                {
+                  label: "Detalhe de bloqueios entre transações (InnoDB)",
+                  command: `SELECT
+  r.trx_id AS trx_bloqueada,
+  r.trx_mysql_thread_id AS thread_bloqueado,
+  r.trx_query AS query_bloqueada,
+  b.trx_id AS trx_bloqueadora,
+  b.trx_mysql_thread_id AS thread_bloqueador,
+  b.trx_query AS query_bloqueadora
+FROM information_schema.innodb_lock_waits w
+JOIN information_schema.innodb_trx r ON r.trx_id = w.requesting_trx_id
+JOIN information_schema.innodb_trx b ON b.trx_id = w.blocking_trx_id;`
+                },
+                {
+                  label: "Encerre o processo bloqueador (substitua o ID)",
+                  command: "KILL <thread_id>;"
+                }
+              ]
+            },
+            {
+              type: "tip",
+              text: "No MySQL 8+, use performance_schema.data_lock_waits no lugar de information_schema.innodb_lock_waits."
+            }
+          ]
+        },
+        {
+          id: "backup-mysql",
+          title: "Backup e Restore com mysqldump",
+          tags: ["backup", "restore", "mysqldump", "recovery"],
+          description: "Gera e restaura backups lógicos com o mysqldump, ferramenta padrão do MySQL.",
+          sections: [
+            {
+              type: "warning",
+              text: "O mysqldump bloqueia as tabelas durante o dump em tabelas MyISAM. Use --single-transaction para InnoDB sem bloqueio."
+            },
+            {
+              type: "steps",
+              title: "Backup",
+              items: [
+                {
+                  label: "Backup de um banco específico",
+                  command: "mysqldump -u root -p --single-transaction nome_banco > backup_banco.sql"
+                },
+                {
+                  label: "Backup de todos os bancos",
+                  command: "mysqldump -u root -p --all-databases --single-transaction > backup_full.sql"
+                },
+                {
+                  label: "Backup comprimido (economiza espaço)",
+                  command: "mysqldump -u root -p --single-transaction nome_banco | gzip > backup_banco.sql.gz"
+                }
+              ]
+            },
+            {
+              type: "steps",
+              title: "Restore",
+              items: [
+                {
+                  label: "Restaure um banco a partir do .sql",
+                  command: "mysql -u root -p nome_banco < backup_banco.sql"
+                },
+                {
+                  label: "Restaure a partir de arquivo comprimido",
+                  command: "gunzip < backup_banco.sql.gz | mysql -u root -p nome_banco"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: "tamanho-databases-mysql",
+          title: "Verificar Tamanho das Databases",
+          tags: ["tamanho", "espaço", "disco", "information_schema"],
+          description: "Consulta o espaço utilizado por databases e tabelas direto do catálogo do MySQL.",
+          sections: [
+            {
+              type: "steps",
+              title: "Queries úteis",
+              items: [
+                {
+                  label: "Tamanho de todas as databases",
+                  command: `SELECT
+  table_schema AS database_name,
+  ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS total_mb
+FROM information_schema.tables
+GROUP BY table_schema
+ORDER BY total_mb DESC;`
+                },
+                {
+                  label: "Tamanho por tabela dentro de um banco",
+                  command: `SELECT
+  table_name AS tabela,
+  ROUND((data_length + index_length) / 1024 / 1024, 2) AS total_mb,
+  ROUND(data_length / 1024 / 1024, 2) AS dados_mb,
+  ROUND(index_length / 1024 / 1024, 2) AS indices_mb
+FROM information_schema.tables
+WHERE table_schema = 'nome_banco'
+ORDER BY total_mb DESC;`
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: "usuarios-privilegios-mysql",
+          title: "Gerenciar Usuários e Privilégios",
+          tags: ["usuário", "grant", "privilégio", "permissão", "create user"],
+          description: "Cria usuários, concede e revoga permissões no MySQL.",
+          sections: [
+            {
+              type: "steps",
+              title: "Usuários",
+              items: [
+                {
+                  label: "Crie um novo usuário",
+                  command: "CREATE USER 'nome_usuario'@'%' IDENTIFIED BY 'senha_forte';"
+                },
+                {
+                  label: "Conceda todas as permissões em um banco",
+                  command: "GRANT ALL PRIVILEGES ON nome_banco.* TO 'nome_usuario'@'%';"
+                },
+                {
+                  label: "Conceda apenas leitura",
+                  command: "GRANT SELECT ON nome_banco.* TO 'nome_usuario'@'%';"
+                },
+                {
+                  label: "Aplique as permissões",
+                  command: "FLUSH PRIVILEGES;"
+                },
+                {
+                  label: "Veja as permissões de um usuário",
+                  command: "SHOW GRANTS FOR 'nome_usuario'@'%';"
+                },
+                {
+                  label: "Revogue todas as permissões",
+                  command: "REVOKE ALL PRIVILEGES ON nome_banco.* FROM 'nome_usuario'@'%';"
                 }
               ]
             }

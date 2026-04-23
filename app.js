@@ -1,19 +1,40 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const sidebar      = $('sidebar');
-  const overlay      = $('overlay');
-  const menuBtn      = $('menuBtn');
-  const sidebarToggle= $('sidebarToggle');
-  const searchInput  = $('searchInput');
-  const searchClear  = $('searchClear');
-  const navEl        = $('nav');
-  const welcome      = $('welcome');
-  const topicView    = $('topicView');
-  const searchResults= $('searchResults');
-  const welcomeCards = $('welcomeCards');
+  const sidebar       = $('sidebar');
+  const overlay       = $('overlay');
+  const menuBtn       = $('menuBtn');
+  const sidebarToggle = $('sidebarToggle');
+  const searchInput   = $('searchInput');
+  const searchClear   = $('searchClear');
+  const navEl         = $('nav');
+  const welcome       = $('welcome');
+  const topicView     = $('topicView');
+  const searchResults = $('searchResults');
+  const welcomeCards  = $('welcomeCards');
+  const themeToggle   = $('themeToggle');
+  const backBtn       = $('backBtn');
 
   let activeTopicId = null;
+  let activeCatId   = null;
+
+  // ── THEME ──
+  const savedTheme = localStorage.getItem('dba-theme') || 'dark';
+  document.documentElement.dataset.theme = savedTheme;
+
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.dataset.theme;
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('dba-theme', next);
+  });
+
+  // ── BACK BUTTON ──
+  backBtn.addEventListener('click', showWelcomeScreen);
+
+  function setBackBtn(visible) {
+    backBtn.classList.toggle('hidden', !visible);
+  }
 
   // ── BUILD NAV ──
   function buildNav() {
@@ -65,10 +86,7 @@
         <h3>${cat.name}</h3>
         <p>${cat.topics.length} tópico${cat.topics.length !== 1 ? 's' : ''}</p>
       `;
-      card.addEventListener('click', () => {
-        const firstTopic = cat.topics[0];
-        showTopic(cat.id, firstTopic.id);
-      });
+      card.addEventListener('click', () => showTopic(cat.id, cat.topics[0].id));
       welcomeCards.appendChild(card);
     });
   }
@@ -80,32 +98,30 @@
     if (!cat || !topic) return;
 
     activeTopicId = topicId;
+    activeCatId   = catId;
     searchInput.value = '';
     searchClear.classList.remove('visible');
 
     welcome.classList.add('hidden');
     searchResults.classList.add('hidden');
     topicView.classList.remove('hidden');
+    setBackBtn(true);
 
-    // update nav active
     document.querySelectorAll('.nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.topicId === topicId);
     });
 
     topicView.innerHTML = renderTopic(cat, topic);
     topicView.scrollTop = 0;
+    window.scrollTo(0, 0);
 
-    // copy buttons
     topicView.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const code = btn.closest('.code-block').querySelector('pre').textContent;
         navigator.clipboard.writeText(code).then(() => {
           btn.textContent = '✓ Copiado';
           btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = 'Copiar';
-            btn.classList.remove('copied');
-          }, 1800);
+          setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1800);
         });
       });
     });
@@ -139,15 +155,16 @@
           </div>
         `;
       }
-
       return '';
     }).join('');
 
     return `
       <div class="topic-breadcrumb">
-        <span onclick="showWelcomeScreen()">Início</span>
+        <span onclick="showWelcomeScreen()" style="cursor:pointer">Início</span>
         ›
         <span style="color:${cat.color}">${cat.name}</span>
+        ›
+        <span>${topic.title}</span>
       </div>
       <h1 class="topic-title">${topic.title}</h1>
       <p class="topic-description">${topic.description}</p>
@@ -181,12 +198,15 @@
   // ── WELCOME ──
   window.showWelcomeScreen = function() {
     activeTopicId = null;
+    activeCatId   = null;
     welcome.classList.remove('hidden');
     topicView.classList.add('hidden');
     searchResults.classList.add('hidden');
     searchInput.value = '';
     searchClear.classList.remove('visible');
+    setBackBtn(false);
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    window.scrollTo(0, 0);
   };
 
   // ── SEARCH ──
@@ -195,6 +215,7 @@
 
     if (!query) {
       searchResults.classList.add('hidden');
+      setBackBtn(!!activeTopicId);
       if (!activeTopicId) welcome.classList.remove('hidden');
       else topicView.classList.remove('hidden');
       return;
@@ -203,9 +224,9 @@
     welcome.classList.add('hidden');
     topicView.classList.add('hidden');
     searchResults.classList.remove('hidden');
+    setBackBtn(true);
 
     const hits = [];
-
     CONTENT.categories.forEach(cat => {
       cat.topics.forEach(topic => {
         const haystack = [
@@ -218,9 +239,7 @@
           })
         ].join(' ').toLowerCase();
 
-        if (haystack.includes(query)) {
-          hits.push({ cat, topic });
-        }
+        if (haystack.includes(query)) hits.push({ cat, topic });
       });
     });
 
@@ -248,9 +267,7 @@
     `;
   }
 
-  window.showTopic_ = function(catId, topicId) {
-    showTopic(catId, topicId);
-  };
+  window.showTopic_ = (catId, topicId) => showTopic(catId, topicId);
 
   searchInput.addEventListener('input', e => {
     const val = e.target.value;
@@ -266,15 +283,8 @@
   });
 
   // ── MOBILE SIDEBAR ──
-  function openSidebar() {
-    sidebar.classList.add('open');
-    overlay.classList.add('open');
-  }
-
-  function closeSidebar() {
-    sidebar.classList.remove('open');
-    overlay.classList.remove('open');
-  }
+  function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('open');    }
+  function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
 
   menuBtn.addEventListener('click', openSidebar);
   sidebarToggle.addEventListener('click', closeSidebar);
