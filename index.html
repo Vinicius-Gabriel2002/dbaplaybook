@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DBA Playbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon">&#9881;</span>
+        <span class="logo-text">DBA<strong>Playbook</strong></span>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Fechar menu">&#10005;</button>
+    </div>
+
+    <div class="search-wrapper">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Buscar comandos..." autocomplete="off" />
+      <button class="search-clear" id="searchClear" aria-label="Limpar busca">&#10005;</button>
+    </div>
+
+    <nav class="nav" id="nav"></nav>
+  </aside>
+
+  <!-- OVERLAY (mobile) -->
+  <div class="overlay" id="overlay"></div>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">&#9776;</button>
+
+    <div class="content-area" id="contentArea">
+      <!-- Home / Welcome -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-inner">
+          <h1>&#9881; DBA Playbook</h1>
+          <p class="welcome-sub">Seu guia rápido de comandos para o dia a dia</p>
+          <div class="welcome-cards" id="welcomeCards"></div>
+        </div>
+      </div>
+
+      <!-- Topic View -->
+      <article class="topic-view hidden" id="topicView"></article>
+
+      <!-- Search Results -->
+      <div class="search-results hidden" id="searchResults"></div>
+    </div>
+  </main>
+
+  <script src="content.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
