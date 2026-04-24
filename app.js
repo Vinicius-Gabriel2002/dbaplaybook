@@ -107,7 +107,7 @@
     navEl.innerHTML = '';
     CONTENT.categories.forEach(cat => {
       const catEl = document.createElement('div');
-      catEl.className = 'nav-category';
+      catEl.className = 'nav-category collapsed';
 
       const header = document.createElement('div');
       header.className = 'nav-category-header';
