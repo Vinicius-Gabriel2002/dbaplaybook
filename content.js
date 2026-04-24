@@ -253,6 +253,32 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "custom-1777036081788",
+          "title": "Resize datafile",
+          "description": "Reduzir datafiles com espaço alocado mas sem utilização\nPor exemplo: pós truncate table",
+          "tags": [
+            "Tablespace",
+            "datafile",
+            "espaço em disco"
+          ],
+          "sections": [
+            {
+              "type": "warning",
+              "text": "Faça somente em datafiles com autoextend habilitado"
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Gerar subconsultas",
+                  "command": "set lines 200\nset pages 100\ncol FILE_NAME for a100\ncol SMALLEST for a100\n select 'alter database datafile ''' || file_name || ''' resize ' ||  \nceil( (nvl(hwm,1)*8192)/1024/1024+1 )|| 'm;' smallest,\nceil( blocks*8192/1024/1024) currsize,\nceil( blocks*8192/1024/1024) -\nceil( (nvl(hwm,1)*8192)/1024/1024 ) savings\nfrom dba_data_files a,\n( select file_id, max(block_id+blocks-1) hwm\nfrom dba_extents where tablespace_name in (select tablespace_name from dba_tablespaces where CONTENTS='PERMANENT' and STATUS='ONLINE')\ngroup by file_id ) b\nwhere a.file_id = b.file_id(+)\nand tablespace_name in\n(select tablespace_name from dba_tablespaces where CONTENTS='PERMANENT' and STATUS='ONLINE')\norder by savings;"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
