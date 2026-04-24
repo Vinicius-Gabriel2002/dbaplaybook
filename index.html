@@ -124,6 +124,54 @@
 
   </main>
 
+  <!-- MODAL EDITOR -->
+  <div class="modal-overlay hidden" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">Novo Tópico</h2>
+        <button class="modal-close-btn" id="modalCloseBtn" aria-label="Fechar">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group" id="formCatGroup">
+          <label class="form-label">Banco de dados</label>
+          <select class="form-select" id="formCat"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Título</label>
+          <input type="text" class="form-input" id="formTitle" placeholder="Ex: Como criar um índice" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descrição curta</label>
+          <textarea class="form-textarea" id="formDesc" rows="2" placeholder="Explique em uma frase o que esse tópico faz"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tags <span class="form-hint">(separadas por vírgula)</span></label>
+          <input type="text" class="form-input" id="formTags" placeholder="Ex: índice, performance, criação" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nota de introdução <span class="form-hint">(opcional)</span></label>
+          <select class="form-select form-select-sm" id="formNoteType">
+            <option value="">Sem nota</option>
+            <option value="warning">⚠️ Atenção</option>
+            <option value="info">ℹ️ Informação</option>
+            <option value="tip">💡 Dica</option>
+            <option value="result">✅ Resultado esperado</option>
+          </select>
+          <textarea class="form-textarea" id="formNoteText" rows="2" placeholder="Texto da nota..." style="display:none;margin-top:8px"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passos</label>
+          <div id="stepsContainer"></div>
+          <button type="button" class="add-step-btn" id="addStepBtn">+ Adicionar Passo</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modalCancelBtn">Cancelar</button>
+        <button class="btn-primary" id="modalSaveBtn">Salvar Tópico</button>
+      </div>
+    </div>
+  </div>
+
   <script src="content.js"></script>
   <script src="app.js"></script>
 </body>

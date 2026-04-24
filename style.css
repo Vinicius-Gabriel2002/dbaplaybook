@@ -710,6 +710,237 @@ body {
 
 .footer-linkedin:hover { color: #0a66c2; }
 
+/* ── ADMIN NAV ── */
+.nav-add-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 6px 16px 4px 36px;
+  padding: 6px 10px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.nav-add-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+.nav-export-btn {
+  display: block;
+  width: calc(100% - 32px);
+  margin: 16px 16px 8px;
+  padding: 9px 14px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(79,142,247,0.3);
+  border-radius: 8px;
+  color: var(--accent);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.nav-export-btn:hover { background: rgba(79,142,247,0.2); }
+
+/* admin mode indicator in topbar */
+.admin-mode .back-btn::before {
+  content: 'ADMIN · ';
+  color: #f59e0b;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: .5px;
+}
+
+/* ── ADMIN TOPIC BAR ── */
+.admin-topic-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.admin-topic-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition: all .15s;
+}
+.admin-topic-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.admin-topic-delete:hover { border-color: var(--red); color: var(--red); background: rgba(239,68,68,.08); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,.4);
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-title { font-size: 17px; font-weight: 700; }
+.modal-close-btn {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 18px; cursor: pointer; padding: 4px 8px;
+  border-radius: 6px; transition: background .15s, color .15s;
+}
+.modal-close-btn:hover { background: var(--surface2); color: var(--text); }
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* ── FORM ELEMENTS ── */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.form-hint  { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+
+.form-input, .form-textarea, .form-select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-select { cursor: pointer; }
+.form-select-sm { max-width: 200px; }
+
+/* ── STEPS BUILDER ── */
+.step-form-row {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.step-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.step-form-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.step-form-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+.step-form-remove:hover { color: var(--red); background: rgba(239,68,68,.08); }
+
+.step-form-command { font-family: var(--font-mono); font-size: 12.5px; }
+
+.add-step-btn {
+  width: 100%;
+  padding: 9px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 4px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.add-step-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  padding: 9px 20px;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btn-primary:hover { opacity: .85; }
+
+.btn-secondary {
+  padding: 9px 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.btn-secondary:hover { background: var(--border); color: var(--text); }
+
 /* ── OVERLAY (mobile) ── */
 .overlay {
   display: none;
