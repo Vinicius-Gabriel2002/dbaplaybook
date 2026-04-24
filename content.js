@@ -180,21 +180,26 @@ const CONTENT = {
           ]
         },
         {
-          "id": "custom-1776994218388",
-          "title": "Sessões ativas",
-          "description": "Lista as sessões ativas do Oracle",
+          "id": "sessoes-ativas",
+          "title": "Sessões Ativas",
+          "description": "Exibe sessões ativas com detalhes de usuário, máquina, programa, SQL_ID e tempo desde a última atividade.",
           "tags": [
-            "Sessions",
-            "Sessões",
-            "Performance"
+            "sessão",
+            "sessões ativas",
+            "performance",
+            "monitoramento"
           ],
           "sections": [
+            {
+              "type": "info",
+              "text": "A query filtra apenas sessões ACTIVE. Retire o filtro `AND s.status = 'ACTIVE'` para ver também sessões inativas."
+            },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "Listar Sessões ativas",
+                  "label": "Listar sessões ativas com detalhes de usuário, máquina e tempo",
                   "command": "set pagesize 200\nset linesize 200\nset pause off\nset verify off\ncol inst           format 99\ncol username       format a12\ncol os_pid         format 9999999\ncol sessao         format a12\ncol machine        format a30\ncol programa       format a30 truncate\ncol machine_osuser format a40 truncate heading \"MACHINE: OSUSER\"\ncol log_time       format a10  heading 'HORARIO|DO LOGIN' justify right\ncol inicio_ult_cmd format a14 heading 'TEMPO ATIVO|OU INATIVO' justify right\ncol module         format a30\ncol status         format a8\n\nselect s.inst_id inst,\n       s.username,\n       to_number(p.spid) as os_pid,\n       '''' || to_char(s.sid) || ',' || to_char(s.serial#) || '''' as sessao,\n       s.machine || ': ' || s.osuser as machine_osuser,\n       SUBSTR(SUBSTR(s.program,INSTR(s.program,'\\',-1)+1),1,30) as programa,\n       decode( trunc(sysdate-s.logon_time),            -- dias conectado\n               0, to_char(s.logon_time,'hh24:mi:ss'),  -- se menos de um dia\n                  to_char(trunc(sysdate-s.logon_time, 1), 'fm99.0') || ' dias'\n             ) as log_time,\n       decode( trunc(last_call_et/86400),  -- 86400 seg = 1 dia\n               0, '     ',                 -- se 0 dias, coloca brancos\n                  to_char(trunc(last_call_et/60/60/24), '0') || 'd, ')\n       || to_char( to_date(mod(last_call_et, 86400), 'SSSSS'),\n                              'hh24\"h\"MI\"m\"SS\"s\"'\n                 ) as inicio_ult_cmd,\n       SUBSTR(SUBSTR(s.module,INSTR(s.module,'\\',-1)+1),1,30)   as module,\n           s.sql_id,\n       decode(status, 'ACTIVE', 'ATIVO',\n                      'INACTIVE', 'INATIVO',\n                      status) as status\nfrom gv$session s, gv$process p\nwhere s.username is not null\nand s.inst_id = p.inst_id\nand s.paddr = p.addr\nand s.status = 'ACTIVE'\norder by inicio_ult_cmd, status, s.username;\n\nset feedback 6"
                 }
               ]
@@ -202,17 +207,26 @@ const CONTENT = {
           ]
         },
         {
-          "id": "custom-1777035577756",
-          "title": "Pegar variáveis de Bind",
-          "description": "Pegar o que está dentro das bind variables do SQLID para facilitar a analise da consulta",
-          "tags": [],
+          "id": "bind-variables",
+          "title": "Capturar Bind Variables",
+          "description": "Recupera os valores capturados das bind variables de um SQL_ID para facilitar a análise de consultas parametrizadas.",
+          "tags": [
+            "bind variable",
+            "sql_id",
+            "tuning",
+            "performance"
+          ],
           "sections": [
+            {
+              "type": "tip",
+              "text": "Os valores são capturados de forma amostral pelo Oracle. Se `value_string` estiver nulo, a captura ainda não ocorreu para esse SQL."
+            },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "pegar o valor das variáveis",
+                  "label": "Consultar valores das bind variables de um SQL_ID",
                   "command": "SELECT name, position, datatype_string, value_string, last_captured\nFROM v$sql_bind_capture\nWHERE sql_id = '&sql_id';"
                 }
               ]
@@ -220,107 +234,131 @@ const CONTENT = {
           ]
         },
         {
-          "id": "custom-1777035843232",
-          "title": "Limit processes/Sessions",
-          "description": "Alteração do máximo de processes e sessions do Oracle",
+          "id": "limite-processos-sessoes",
+          "title": "Alterar Limite de Processos e Sessões",
+          "description": "Aumenta os parâmetros `processes` e `sessions` quando o banco está atingindo o limite máximo de conexões.",
           "tags": [
             "processes",
             "sessions",
-            "limit processes",
-            "limit sessions"
+            "limite",
+            "conexões",
+            "spfile"
           ],
           "sections": [
             {
               "type": "warning",
-              "text": "Necessário reiniciar o banco, planeje uma janela de manutenção"
+              "text": "É necessário reiniciar o banco para aplicar. Planeje uma janela de manutenção."
             },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "Coletar quais os limites atuais",
-                  "command": "--Processes:\nselect limit_value,max_utilization from v$resource_limit where resource_name='processes';\n\n--Sessions:\nselect limit_value,max_utilization from v$resource_limit where resource_name='sessions';"
+                  "label": "Verificar os limites atuais e o pico de utilização",
+                  "command": "-- Processes:\nSELECT limit_value, max_utilization FROM v$resource_limit WHERE resource_name = 'processes';\n\n-- Sessions:\nSELECT limit_value, max_utilization FROM v$resource_limit WHERE resource_name = 'sessions';"
                 },
                 {
-                  "label": "Para aumentar o limite",
-                  "command": "--Processes:\nalter system set processes=1000 scope=spfile;\n\n--Sessions\nalter system set sessions=1000 scope=spfile;"
+                  "label": "Aumentar o limite (ajuste os valores conforme necessário)",
+                  "command": "-- Processes:\nALTER SYSTEM SET processes = 1000 SCOPE = spfile;\n\n-- Sessions:\nALTER SYSTEM SET sessions = 1000 SCOPE = spfile;"
                 },
                 {
-                  "label": "Reiniciar o banco para aplicar",
-                  "command": "-- backup do spfile\ncreate pfile='/tmp/pfile.ora' from spfile;\n\n-- Desligar o banco\nshutdown immediate\n\n-- Iniciar o banco\nstartup"
+                  "label": "Fazer backup do spfile e reiniciar o banco",
+                  "command": "-- Backup do spfile antes de reiniciar\nCREATE PFILE = '/tmp/pfile_backup.ora' FROM SPFILE;\n\n-- Desligar o banco\nSHUTDOWN IMMEDIATE;\n\n-- Iniciar o banco\nSTARTUP;"
                 }
               ]
             }
           ]
         },
         {
-          "id": "custom-1777036081788",
-          "title": "Resize datafile",
-          "description": "Reduzir datafiles com espaço alocado mas sem utilização\nPor exemplo: pós truncate table",
+          "id": "resize-datafile",
+          "title": "Resize de Datafiles",
+          "description": "Reduz datafiles com espaço alocado mas sem utilização — comum após TRUNCATE TABLE ou expurgo de dados.",
           "tags": [
-            "Tablespace",
+            "tablespace",
             "datafile",
-            "espaço em disco"
+            "espaço em disco",
+            "resize",
+            "high water mark"
           ],
           "sections": [
             {
               "type": "warning",
-              "text": "Faça somente em datafiles com autoextend habilitado"
+              "text": "Nunca reduza abaixo do high water mark. A query já calcula o mínimo seguro — execute apenas os comandos gerados por ela."
             },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "Gerar subconsultas",
-                  "command": "set lines 200\nset pages 100\ncol FILE_NAME for a100\ncol SMALLEST for a100\n select 'alter database datafile ''' || file_name || ''' resize ' ||  \nceil( (nvl(hwm,1)*8192)/1024/1024+1 )|| 'm;' smallest,\nceil( blocks*8192/1024/1024) currsize,\nceil( blocks*8192/1024/1024) -\nceil( (nvl(hwm,1)*8192)/1024/1024 ) savings\nfrom dba_data_files a,\n( select file_id, max(block_id+blocks-1) hwm\nfrom dba_extents where tablespace_name in (select tablespace_name from dba_tablespaces where CONTENTS='PERMANENT' and STATUS='ONLINE')\ngroup by file_id ) b\nwhere a.file_id = b.file_id(+)\nand tablespace_name in\n(select tablespace_name from dba_tablespaces where CONTENTS='PERMANENT' and STATUS='ONLINE')\norder by savings;"
+                  "label": "Gerar os comandos ALTER DATABASE para reduzir cada datafile ao mínimo seguro",
+                  "command": "SET LINES 200\nSET PAGES 100\nCOL FILE_NAME FOR a100\nCOL SMALLEST FOR a100\n\nSELECT 'ALTER DATABASE DATAFILE ''' || file_name || ''' RESIZE ' ||\n       CEIL( (NVL(hwm,1)*8192)/1024/1024+1 ) || 'm;' smallest,\n       CEIL( blocks*8192/1024/1024 ) currsize,\n       CEIL( blocks*8192/1024/1024 ) -\n       CEIL( (NVL(hwm,1)*8192)/1024/1024 ) savings\nFROM dba_data_files a,\n     ( SELECT file_id, MAX(block_id+blocks-1) hwm\n       FROM dba_extents\n       WHERE tablespace_name IN (SELECT tablespace_name FROM dba_tablespaces\n                                  WHERE CONTENTS='PERMANENT' AND STATUS='ONLINE')\n       GROUP BY file_id ) b\nWHERE a.file_id = b.file_id(+)\n  AND tablespace_name IN (SELECT tablespace_name FROM dba_tablespaces\n                           WHERE CONTENTS='PERMANENT' AND STATUS='ONLINE')\nORDER BY savings;"
                 }
               ]
+            },
+            {
+              "type": "tip",
+              "text": "A coluna `savings` mostra o espaço que será liberado (em MB). Execute os comandos da coluna `smallest` um por um."
             }
           ]
         },
         {
-          "id": "custom-1777036198897",
-          "title": "Índices não utilizados",
-          "description": "Fazer rebuild de índices marcados como UNUSABLE",
+          "id": "rebuild-indices-unusable",
+          "title": "Rebuild de Índices UNUSABLE",
+          "description": "Gera os comandos ALTER INDEX para recompilar todos os índices marcados como UNUSABLE no banco.",
           "tags": [
-            "indices"
+            "índice",
+            "unusable",
+            "rebuild",
+            "performance"
           ],
           "sections": [
+            {
+              "type": "warning",
+              "text": "Índices UNUSABLE impedem operações DML na tabela quando `skip_unusable_indexes = FALSE`. Priorize o rebuild em produção."
+            },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "Executar o comando abaixo",
-                  "command": "SELECT 'alter index '||owner||'.'||index_name||' rebuild tablespace '||tablespace_name ||';' sql_to_rebuild_index\nFROM   dba_indexes\nWHERE  status = 'UNUSABLE';"
+                  "label": "Gerar os comandos de rebuild para todos os índices UNUSABLE",
+                  "command": "SELECT 'ALTER INDEX ' || owner || '.' || index_name ||\n       ' REBUILD TABLESPACE ' || tablespace_name || ';' AS sql_to_rebuild\nFROM   dba_indexes\nWHERE  status = 'UNUSABLE'\nORDER BY owner, index_name;"
                 }
               ]
+            },
+            {
+              "type": "tip",
+              "text": "Execute os comandos gerados um por um. Em tablespaces grandes, o rebuild pode demorar — considere executar fora do horário de pico."
             }
           ]
         },
         {
-          "id": "custom-1777036397735",
-          "title": "Objetos inválidos",
-          "description": "Listar e compilar objetos inválidos no ambiente",
-          "tags": [],
+          "id": "objetos-invalidos",
+          "title": "Objetos Inválidos",
+          "description": "Lista e recompila objetos inválidos (procedures, functions, packages, views) no ambiente Oracle.",
+          "tags": [
+            "objetos inválidos",
+            "invalid objects",
+            "compilar",
+            "utlrp",
+            "recompile"
+          ],
           "sections": [
             {
               "type": "info",
-              "text": "irá compilar objetos inválidos que podem ser compilados, podem ocorrer erros de compilação"
+              "text": "A recompilação tenta revalidar os objetos automaticamente. Podem ocorrer erros de compilação se houver dependências quebradas."
             },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "Listar totais por owner",
-                  "command": "col owner for a40\nset lines 155\nselect\nowner,\ndecode(object_type,null,'===========================>',object_type) as \"OBJECT_TYPE\",\ncount(object_type) as \"TOTAL\",\ndecode(grouping(owner),0,null,1,'Total de objectos invalidos.') as \" \"\nfrom dba_objects where object_type!='SYNONYM' \nAND status!='VALID' \n--And owner='VETORH'\ngroup by rollup (owner, object_type)\norder by owner, object_type desc;"
+                  "label": "Listar total de objetos inválidos por owner e tipo",
+                  "command": "COL owner FOR a40\nSET LINES 155\n\nSELECT\n  owner,\n  DECODE(object_type, NULL, '===========================> TOTAL', object_type) AS \"OBJECT_TYPE\",\n  COUNT(object_type) AS \"TOTAL\",\n  DECODE(GROUPING(owner), 0, NULL, 1, 'Total de objetos inválidos.') AS \" \"\nFROM dba_objects\nWHERE object_type != 'SYNONYM'\n  AND status != 'VALID'\n  --AND owner = '<OWNER>'\nGROUP BY ROLLUP (owner, object_type)\nORDER BY owner, object_type DESC;"
                 },
                 {
-                  "label": "Script para recompilar",
-                  "command": "select 'ALTER '||decode(object_type,'PACKAGE BODY','PACKAGE \"'||owner||'\".\"'||object_name||'\" COMPILE BODY;', object_type||' \"'||owner||'\".\"'||object_name||'\" COMPILE;')\nfrom dba_objects where owner like '<OWNER>' and object_type!='TABLE' and status!='VALID';\n\n-- Ou usar a package do próprio Oracle\n@$ORACLE_HOME/rdbms/admin/utlrp.sql"
+                  "label": "Gerar script de recompilação por owner",
+                  "command": "SELECT 'ALTER ' || DECODE(object_type,\n         'PACKAGE BODY', 'PACKAGE \"' || owner || '\".\"' || object_name || '\" COMPILE BODY;',\n         object_type || ' \"' || owner || '\".\"' || object_name || '\" COMPILE;')\nFROM dba_objects\nWHERE owner LIKE '<OWNER>'\n  AND object_type != 'TABLE'\n  AND status != 'VALID';\n\n-- Ou recompilar tudo de uma vez com a package nativa do Oracle:\n@$ORACLE_HOME/rdbms/admin/utlrp.sql"
                 }
               ]
             }
