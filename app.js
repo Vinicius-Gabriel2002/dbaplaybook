@@ -659,6 +659,7 @@
   }
 
   // ── INIT ──
+  searchInput.value = '';
   mergeContent();
   injectAllSchemas();
   if (checkAdminSession()) enableAdminMode();
