@@ -382,28 +382,50 @@
     else items.forEach(i => addStepRow(i.label, i.command || ''));
   }
 
-  function addStepRow(label = '', command = '') {
+  function renumberSteps() {
+    $('stepsContainer').querySelectorAll('.step-form-num').forEach((el, i) => el.textContent = i + 1);
+  }
+
+  function addStepRow(label = '', command = '', insertAfter = null) {
     const container = $('stepsContainer');
-    const num = container.querySelectorAll('.step-form-row').length + 1;
     const row = document.createElement('div');
     row.className = 'step-form-row';
 
     const numEl = document.createElement('span');
     numEl.className = 'step-form-num';
-    numEl.textContent = num;
+    numEl.textContent = container.querySelectorAll('.step-form-row').length + 1;
+
+    const moveUp = document.createElement('button');
+    moveUp.type = 'button'; moveUp.className = 'step-move-btn'; moveUp.title = 'Mover para cima';
+    moveUp.innerHTML = '&#8593;';
+    moveUp.addEventListener('click', () => {
+      if (row.previousElementSibling) { container.insertBefore(row, row.previousElementSibling); renumberSteps(); }
+    });
+
+    const moveDown = document.createElement('button');
+    moveDown.type = 'button'; moveDown.className = 'step-move-btn'; moveDown.title = 'Mover para baixo';
+    moveDown.innerHTML = '&#8595;';
+    moveDown.addEventListener('click', () => {
+      if (row.nextElementSibling) { container.insertBefore(row.nextElementSibling, row); renumberSteps(); }
+    });
+
+    const insertBtn = document.createElement('button');
+    insertBtn.type = 'button'; insertBtn.className = 'step-insert-btn'; insertBtn.title = 'Inserir passo abaixo';
+    insertBtn.innerHTML = '+ inserir abaixo';
+    insertBtn.addEventListener('click', () => { addStepRow('', '', row); renumberSteps(); });
 
     const removeBtn = document.createElement('button');
-    removeBtn.type = 'button';
-    removeBtn.className = 'step-form-remove';
+    removeBtn.type = 'button'; removeBtn.className = 'step-form-remove';
     removeBtn.textContent = 'Remover';
-    removeBtn.addEventListener('click', () => {
-      row.remove();
-      container.querySelectorAll('.step-form-num').forEach((el, i) => el.textContent = i + 1);
-    });
+    removeBtn.addEventListener('click', () => { row.remove(); renumberSteps(); });
 
     const hdr = document.createElement('div');
     hdr.className = 'step-form-header';
-    hdr.appendChild(numEl); hdr.appendChild(removeBtn);
+    hdr.appendChild(numEl);
+    hdr.appendChild(moveUp);
+    hdr.appendChild(moveDown);
+    hdr.appendChild(insertBtn);
+    hdr.appendChild(removeBtn);
 
     const labelEl = document.createElement('input');
     labelEl.type = 'text'; labelEl.className = 'form-input step-form-label';
@@ -415,7 +437,13 @@
     cmdEl.rows = 3; cmdEl.value = command;
 
     row.appendChild(hdr); row.appendChild(labelEl); row.appendChild(cmdEl);
-    container.appendChild(row);
+
+    if (insertAfter && insertAfter.nextSibling) {
+      container.insertBefore(row, insertAfter.nextSibling);
+    } else {
+      container.appendChild(row);
+    }
+    renumberSteps();
   }
 
   async function saveModalData() {

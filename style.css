@@ -953,9 +953,10 @@ body {
 .step-form-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 4px;
 }
 .step-form-num {
+  flex-shrink: 0;
   width: 22px; height: 22px;
   border-radius: 50%;
   background: var(--accent-dim);
@@ -979,6 +980,33 @@ body {
   transition: color .15s, background .15s;
 }
 .step-form-remove:hover { color: var(--red); background: rgba(239,68,68,.08); }
+.step-form-remove { margin-left: auto; }
+
+.step-move-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.4;
+  transition: color .15s, background .15s;
+}
+.step-move-btn:hover { color: var(--text); background: var(--hover); }
+
+.step-insert-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background .15s;
+}
+.step-insert-btn:hover { background: var(--accent-dim); }
 
 .step-form-command { font-family: var(--font-mono); font-size: 12.5px; }
 
