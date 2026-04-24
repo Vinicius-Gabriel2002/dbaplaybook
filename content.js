@@ -200,6 +200,24 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "custom-1777035577756",
+          "title": "Pegar variáveis de Bind",
+          "description": "Pegar o que está dentro das bind variables do SQLID para facilitar a analise da consulta",
+          "tags": [],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "pegar o valor das variáveis",
+                  "command": "SELECT name, position, datatype_string, value_string, last_captured\nFROM v$sql_bind_capture\nWHERE sql_id = '&sql_id';"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
