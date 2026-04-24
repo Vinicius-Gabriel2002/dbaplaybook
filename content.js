@@ -240,11 +240,11 @@ const CONTENT = {
               "items": [
                 {
                   "label": "Coletar quais os limites atuais",
-                  "command": "Processes:\nselect limit_value,max_utilization from v$resource_limit where resource_name='processes';\n\nSessions:\nselect limit_value,max_utilization from v$resource_limit where resource_name='sessions';"
+                  "command": "--Processes:\nselect limit_value,max_utilization from v$resource_limit where resource_name='processes';\n\n--Sessions:\nselect limit_value,max_utilization from v$resource_limit where resource_name='sessions';"
                 },
                 {
                   "label": "Para aumentar o limite",
-                  "command": "Processes:\nalter system set processes=1000 scope=spfile;\n\nSessions\nalter system set sessions=1000 scope=spfile;"
+                  "command": "--Processes:\nalter system set processes=1000 scope=spfile;\n\n--Sessions\nalter system set sessions=1000 scope=spfile;"
                 },
                 {
                   "label": "Reiniciar o banco para aplicar",
