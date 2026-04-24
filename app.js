@@ -596,8 +596,38 @@
   sidebarToggle.addEventListener('click', closeSidebar);
   overlay.addEventListener('click', closeSidebar);
 
+  // ── INJECT ALL HOWTO SCHEMAS ON LOAD ──
+  function injectAllSchemas() {
+    const schemas = [];
+    CONTENT.categories.forEach(cat => {
+      cat.topics.forEach(topic => {
+        const steps = (topic.sections || []).find(s => s.type === 'steps');
+        schemas.push({
+          '@context': 'https://schema.org',
+          '@type': steps ? 'HowTo' : 'Article',
+          'name': topic.title,
+          'description': topic.description,
+          'inLanguage': 'pt-BR',
+          'keywords': (topic.tags || []).join(', '),
+          'author': { '@type': 'Person', 'name': 'Vinicius Gabriel Lana' },
+          ...(steps ? {
+            'step': steps.items.map((item, i) => ({
+              '@type': 'HowToStep',
+              'position': i + 1,
+              'name': item.label,
+              'text': item.command || item.label
+            }))
+          } : {})
+        });
+      });
+    });
+    const el = document.getElementById('topicSchema');
+    if (el) el.textContent = JSON.stringify(schemas);
+  }
+
   // ── INIT ──
   mergeContent();
+  injectAllSchemas();
   if (checkAdminSession()) enableAdminMode();
   buildNav();
   buildWelcome();
