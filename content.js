@@ -32,6 +32,14 @@ const CONTENT = {
                   "command": "SELECT LOG_MODE FROM V$DATABASE;"
                 },
                 {
+                  "label": "Defina um diretório para os archives",
+                  "command": "ALTER SYSTEM SET log_archive_dest_1='location=<LOCAL ARCHIVES>' SCOPE=spfile;"
+                },
+                {
+                  "label": "Configurar nomenclatura dos archives",
+                  "command": "ALTER SYSTEM SET log_archive_format='<INSTANCIA>_%t_%s_%r.arc' scope=spfile;"
+                },
+                {
                   "label": "Desligue o banco de forma limpa",
                   "command": "SHUTDOWN IMMEDIATE;"
                 },
@@ -52,10 +60,6 @@ const CONTENT = {
                   "command": "SELECT LOG_MODE FROM V$DATABASE;"
                 }
               ]
-            },
-            {
-              "type": "result",
-              "text": "O retorno esperado é: ARCHIVELOG"
             }
           ]
         },
