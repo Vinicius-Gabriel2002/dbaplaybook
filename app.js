@@ -598,31 +598,31 @@
 
   // ── INJECT ALL HOWTO SCHEMAS ON LOAD ──
   function injectAllSchemas() {
-    const schemas = [];
+    const graph = [];
     CONTENT.categories.forEach(cat => {
       cat.topics.forEach(topic => {
-        const steps = (topic.sections || []).find(s => s.type === 'steps');
-        schemas.push({
-          '@context': 'https://schema.org',
-          '@type': steps ? 'HowTo' : 'Article',
+        const stepsSection = (topic.sections || []).find(s => s.type === 'steps');
+        const entry = {
+          '@type': stepsSection ? 'HowTo' : 'Article',
           'name': topic.title,
           'description': topic.description,
           'inLanguage': 'pt-BR',
           'keywords': (topic.tags || []).join(', '),
-          'author': { '@type': 'Person', 'name': 'Vinicius Gabriel Lana' },
-          ...(steps ? {
-            'step': steps.items.map((item, i) => ({
-              '@type': 'HowToStep',
-              'position': i + 1,
-              'name': item.label,
-              'text': item.command || item.label
-            }))
-          } : {})
-        });
+          'author': { '@type': 'Person', 'name': 'Vinicius Gabriel Lana' }
+        };
+        if (stepsSection) {
+          entry['step'] = stepsSection.items.map((item, i) => ({
+            '@type': 'HowToStep',
+            'position': i + 1,
+            'name': item.label,
+            'text': item.command || item.label
+          }));
+        }
+        graph.push(entry);
       });
     });
     const el = document.getElementById('topicSchema');
-    if (el) el.textContent = JSON.stringify(schemas);
+    if (el) el.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
   }
 
   // ── INIT ──
