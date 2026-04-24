@@ -369,63 +369,6 @@ const CONTENT = {
           ]
         },
         {
-          "id": "update-build",
-          "title": "Atualizar Build (Patch / CU)",
-          "tags": [
-            "patch",
-            "cumulative update",
-            "cu",
-            "atualização"
-          ],
-          "description": "Processo para aplicar Cumulative Updates (CU) ou Service Packs no SQL Server.",
-          "sections": [
-            {
-              "type": "warning",
-              "text": "Sempre faça backup completo antes de aplicar patches. Teste em ambiente de homologação primeiro."
-            },
-            {
-              "type": "steps",
-              "title": "Pré-atualização",
-              "items": [
-                {
-                  "label": "Verifique a versão atual",
-                  "command": "SELECT @@VERSION;"
-                },
-                {
-                  "label": "Faça backup de todos os bancos",
-                  "command": "EXEC sp_MSforeachdb\n  'IF ''?'' NOT IN (''tempdb'')\n   BACKUP DATABASE [?]\n   TO DISK = ''C:\\Backup\\?_pre_patch.bak''\n   WITH COMPRESSION, STATS = 10';"
-                },
-                {
-                  "label": "Verifique integridade antes do patch",
-                  "command": "EXEC sp_MSforeachdb\n  'DBCC CHECKDB([?]) WITH NO_INFOMSGS';"
-                }
-              ]
-            },
-            {
-              "type": "steps",
-              "title": "Pós-atualização",
-              "items": [
-                {
-                  "label": "Confirme a nova versão",
-                  "command": "SELECT @@VERSION;"
-                },
-                {
-                  "label": "Verifique o nível de compatibilidade dos bancos",
-                  "command": "SELECT name, compatibility_level\nFROM sys.databases\nORDER BY name;"
-                },
-                {
-                  "label": "Atualize estatísticas",
-                  "command": "EXEC sp_MSforeachdb\n  'USE [?]; EXEC sp_updatestats';"
-                }
-              ]
-            },
-            {
-              "type": "result",
-              "text": "O instalador do CU para serviços SQL durante a aplicação. O downtime varia entre 5 e 30 minutos dependendo do ambiente."
-            }
-          ]
-        },
-        {
           "id": "backup-restore",
           "title": "Backup e Restore",
           "tags": [
