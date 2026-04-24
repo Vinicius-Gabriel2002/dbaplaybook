@@ -299,6 +299,32 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "custom-1777036397735",
+          "title": "Objetos inválidos",
+          "description": "Listar e compilar objetos inválidos no ambiente",
+          "tags": [],
+          "sections": [
+            {
+              "type": "info",
+              "text": "irá compilar objetos inválidos que podem ser compilados, podem ocorrer erros de compilação"
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Listar totais por owner",
+                  "command": "col owner for a40\nset lines 155\nselect\nowner,\ndecode(object_type,null,'===========================>',object_type) as \"OBJECT_TYPE\",\ncount(object_type) as \"TOTAL\",\ndecode(grouping(owner),0,null,1,'Total de objectos invalidos.') as \" \"\nfrom dba_objects where object_type!='SYNONYM' \nAND status!='VALID' \n--And owner='VETORH'\ngroup by rollup (owner, object_type)\norder by owner, object_type desc;"
+                },
+                {
+                  "label": "Script para recompilar",
+                  "command": "select 'ALTER '||decode(object_type,'PACKAGE BODY','PACKAGE \"'||owner||'\".\"'||object_name||'\" COMPILE BODY;', object_type||' \"'||owner||'\".\"'||object_name||'\" COMPILE;')\nfrom dba_objects where owner like '<OWNER>' and object_type!='TABLE' and status!='VALID';\n\n-- Ou usar a package do próprio Oracle\n@$ORACLE_HOME/rdbms/admin/utlrp.sql"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
