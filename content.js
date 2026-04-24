@@ -166,54 +166,6 @@ const CONTENT = {
               ]
             }
           ]
-        },
-        {
-          "id": "custom-1776991258716",
-          "title": "Conceder grant em todas as tabelass",
-          "description": "Concede grants em todas as tabelas de um owner para outro",
-          "tags": [
-            "Grant"
-          ],
-          "sections": [
-            {
-              "type": "tip",
-              "text": "A consulta abaixo concede grant de SELECT de todas as tabelas de um owner para outro, para conceder grant de escrita basta adicionar \"UPDATE,INSERT,DELETE\" na linha do grant"
-            },
-            {
-              "type": "steps",
-              "title": "Passo a passo",
-              "items": [
-                {
-                  "label": "grant select all tables",
-                  "command": "-- grants para todas as tabelas: \nset lines 300 pages 10000\nset serverout on\nDECLARE\n  -- Privilegios e grants\n  CURSOR C1( P_CONSULTA VARCHAR2\n           , P_OWNER    VARCHAR2 ) IS\n  SELECT 'GRANT SELECT ON \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\" TO '|| P_CONSULTA ||'' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW')\nUNION\n  SELECT 'CREATE SYNONYM  '||P_CONSULTA||'.\"'|| OBJECT_NAME ||'\" FOR \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\"' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW','PACKAGE','PROCEDURE','PACKAGE BODY','FUNCTION');\n  R1 C1%ROWTYPE;   \nBEGIN\n  -- Usuario que ganhara os grants / usuarios que possuem as tabelas.\n  FOR R1 IN C1('HANDIT','VETORH') LOOP\n     -- DBMS_OUTPUT.PUT_LINE(R1.SQL_STRING);\n\t BEGIN\n       EXECUTE IMMEDIATE R1.SQL_STRING;\n\t EXCEPTION\n       WHEN OTHERS THEN\n\t     dbms_output.put_line(R1.SQL_STRING || ' Erro: ' || SQLERRM);\n\t END;\t\n  END LOOP;\nEND;\n /"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "custom-1776991258716",
-          "title": "Conceder grant em todas as tabelass",
-          "description": "Concede grants em todas as tabelas de um owner para outro",
-          "tags": [
-            "Grant"
-          ],
-          "sections": [
-            {
-              "type": "tip",
-              "text": "A consulta abaixo concede grant de SELECT de todas as tabelas de um owner para outro, para conceder grant de escrita basta adicionar \"UPDATE,INSERT,DELETE\" na linha do grant"
-            },
-            {
-              "type": "steps",
-              "title": "Passo a passo",
-              "items": [
-                {
-                  "label": "grant select all tables",
-                  "command": "-- grants para todas as tabelas: \nset lines 300 pages 10000\nset serverout on\nDECLARE\n  -- Privilegios e grants\n  CURSOR C1( P_CONSULTA VARCHAR2\n           , P_OWNER    VARCHAR2 ) IS\n  SELECT 'GRANT SELECT ON \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\" TO '|| P_CONSULTA ||'' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW')\nUNION\n  SELECT 'CREATE SYNONYM  '||P_CONSULTA||'.\"'|| OBJECT_NAME ||'\" FOR \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\"' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW','PACKAGE','PROCEDURE','PACKAGE BODY','FUNCTION');\n  R1 C1%ROWTYPE;   \nBEGIN\n  -- Usuario que ganhara os grants / usuarios que possuem as tabelas.\n  FOR R1 IN C1('HANDIT','VETORH') LOOP\n     -- DBMS_OUTPUT.PUT_LINE(R1.SQL_STRING);\n\t BEGIN\n       EXECUTE IMMEDIATE R1.SQL_STRING;\n\t EXCEPTION\n       WHEN OTHERS THEN\n\t     dbms_output.put_line(R1.SQL_STRING || ' Erro: ' || SQLERRM);\n\t END;\t\n  END LOOP;\nEND;\n /"
-                }
-              ]
-            }
-          ]
         }
       ]
     },
