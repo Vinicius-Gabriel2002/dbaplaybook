@@ -218,6 +218,41 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "custom-1777035843232",
+          "title": "Limit processes/Sessions",
+          "description": "Alteração do máximo de processes e sessions do Oracle",
+          "tags": [
+            "processes",
+            "sessions",
+            "limit processes",
+            "limit sessions"
+          ],
+          "sections": [
+            {
+              "type": "warning",
+              "text": "Necessário reiniciar o banco, planeje uma janela de manutenção"
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Coletar quais os limites atuais",
+                  "command": "Processes:\nselect limit_value,max_utilization from v$resource_limit where resource_name='processes';\n\nSessions:\nselect limit_value,max_utilization from v$resource_limit where resource_name='sessions';"
+                },
+                {
+                  "label": "Para aumentar o limite",
+                  "command": "Processes:\nalter system set processes=1000 scope=spfile;\n\nSessions\nalter system set sessions=1000 scope=spfile;"
+                },
+                {
+                  "label": "Reiniciar o banco para aplicar",
+                  "command": "-- backup do spfile\ncreate pfile='/tmp/pfile.ora' from spfile;\n\n-- Desligar o banco\nshutdown immediate\n\n-- Iniciar o banco\nstartup"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
