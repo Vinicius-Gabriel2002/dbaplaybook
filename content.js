@@ -168,22 +168,24 @@ const CONTENT = {
           ]
         },
         {
-          "id": "custom-1776990070158",
-          "title": "Sessões ativas",
-          "description": "Coleta as sessões ativas do banco de dados Oracle",
+          "id": "custom-1776991258716",
+          "title": "Conceder grant em todas as tabelass",
+          "description": "Concede grants em todas as tabelas de um owner para outro",
           "tags": [
-            "sessions",
-            "sessões",
-            "performance"
+            "Grant"
           ],
           "sections": [
+            {
+              "type": "tip",
+              "text": "A consulta abaixo concede grant de SELECT de todas as tabelas de um owner para outro, para conceder grant de escrita basta adicionar \"UPDATE,INSERT,DELETE\" na linha do grant"
+            },
             {
               "type": "steps",
               "title": "Passo a passo",
               "items": [
                 {
-                  "label": "sessativ",
-                  "command": "set pagesize 200\nset linesize 200\nset pause off\nset verify off\ncol inst           format 99\ncol username       format a12\ncol os_pid         format 9999999\ncol sessao         format a12\ncol machine        format a30\ncol programa       format a30 truncate\ncol machine_osuser format a40 truncate heading \"MACHINE: OSUSER\"\ncol log_time       format a10  heading 'HORARIO|DO LOGIN' justify right\ncol inicio_ult_cmd format a14 heading 'TEMPO ATIVO|OU INATIVO' justify right\ncol module         format a30\ncol status         format a8\n\nselect s.inst_id inst,\n       s.username,\n       to_number(p.spid) as os_pid,\n       '''' || to_char(s.sid) || ',' || to_char(s.serial#) || '''' as sessao,\n       s.machine || ': ' || s.osuser as machine_osuser,\n       SUBSTR(SUBSTR(s.program,INSTR(s.program,'\\',-1)+1),1,30) as programa,\n       decode( trunc(sysdate-s.logon_time),            -- dias conectado\n               0, to_char(s.logon_time,'hh24:mi:ss'),  -- se menos de um dia\n                  to_char(trunc(sysdate-s.logon_time, 1), 'fm99.0') || ' dias'\n             ) as log_time,\n       decode( trunc(last_call_et/86400),  -- 86400 seg = 1 dia\n               0, '     ',                 -- se 0 dias, coloca brancos\n                  to_char(trunc(last_call_et/60/60/24), '0') || 'd, ')\n       || to_char( to_date(mod(last_call_et, 86400), 'SSSSS'),\n                              'hh24\"h\"MI\"m\"SS\"s\"'\n                 ) as inicio_ult_cmd,\n       SUBSTR(SUBSTR(s.module,INSTR(s.module,'\\',-1)+1),1,30)   as module,\n           s.sql_id,\n       decode(status, 'ACTIVE', 'ATIVO',\n                      'INACTIVE', 'INATIVO',\n                      status) as status\nfrom gv$session s, gv$process p\nwhere s.username is not null\nand s.inst_id = p.inst_id\nand s.paddr = p.addr\nand s.status = 'ACTIVE'\norder by inicio_ult_cmd, status, s.username;\n\nset feedback 6"
+                  "label": "grant select all tables",
+                  "command": "-- grants para todas as tabelas: \nset lines 300 pages 10000\nset serverout on\nDECLARE\n  -- Privilegios e grants\n  CURSOR C1( P_CONSULTA VARCHAR2\n           , P_OWNER    VARCHAR2 ) IS\n  SELECT 'GRANT SELECT ON \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\" TO '|| P_CONSULTA ||'' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW')\nUNION\n  SELECT 'CREATE SYNONYM  '||P_CONSULTA||'.\"'|| OBJECT_NAME ||'\" FOR \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\"' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW','PACKAGE','PROCEDURE','PACKAGE BODY','FUNCTION');\n  R1 C1%ROWTYPE;   \nBEGIN\n  -- Usuario que ganhara os grants / usuarios que possuem as tabelas.\n  FOR R1 IN C1('HANDIT','VETORH') LOOP\n     -- DBMS_OUTPUT.PUT_LINE(R1.SQL_STRING);\n\t BEGIN\n       EXECUTE IMMEDIATE R1.SQL_STRING;\n\t EXCEPTION\n       WHEN OTHERS THEN\n\t     dbms_output.put_line(R1.SQL_STRING || ' Erro: ' || SQLERRM);\n\t END;\t\n  END LOOP;\nEND;\n /"
                 }
               ]
             }
@@ -440,6 +442,27 @@ const CONTENT = {
                 {
                   "label": "Verifique tabelas com mais dead tuples",
                   "command": "SELECT\n  schemaname,\n  relname AS tabela,\n  n_dead_tup AS dead_tuples,\n  n_live_tup AS live_tuples,\n  last_autovacuum\nFROM pg_stat_user_tables\nORDER BY n_dead_tup DESC\nLIMIT 20;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "custom-1776993417287",
+          "title": "Sessões ativas",
+          "description": "Lista todas as sessões ativas do postgres",
+          "tags": [
+            "sessões",
+            "sessions"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "sessativ",
+                  "command": "SELECT pid,\n       usename AS usuario,\n       datname AS database,\n       client_addr AS ip_cliente,\n       application_name,\n       state,\n       query,\n       query_start\nFROM pg_stat_activity\nWHERE state <> 'idle'  -- Apenas sessões ativas\nORDER BY query_start ASC;"
                 }
               ]
             }
