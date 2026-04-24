@@ -623,6 +623,14 @@ body {
 .author-link:hover { color: var(--accent); }
 .author-link svg { stroke: currentColor; flex-shrink: 0; }
 
+.author-link-inline {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity .15s;
+}
+
+.author-link-inline:hover { opacity: 0.75; }
+
 /* ── FOOTER ── */
 .footer {
   border-top: 1px solid var(--border);
