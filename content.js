@@ -398,48 +398,6 @@ const CONTENT = {
               ]
             }
           ]
-        },
-        {
-          "id": "custom-1776993417287",
-          "title": "Sessões ativas",
-          "description": "Lista todas as sessões ativas do postgres",
-          "tags": [
-            "sessões",
-            "sessions"
-          ],
-          "sections": [
-            {
-              "type": "steps",
-              "title": "Passo a passo",
-              "items": [
-                {
-                  "label": "sessativ",
-                  "command": "SELECT pid,\n       usename AS usuario,\n       datname AS database,\n       client_addr AS ip_cliente,\n       application_name,\n       state,\n       query,\n       query_start\nFROM pg_stat_activity\nWHERE state <> 'idle'  -- Apenas sessões ativas\nORDER BY query_start ASC;"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "custom-1776993417287",
-          "title": "Sessões ativas",
-          "description": "Lista todas as sessões ativas do postgres",
-          "tags": [
-            "sessões",
-            "sessions"
-          ],
-          "sections": [
-            {
-              "type": "steps",
-              "title": "Passo a passo",
-              "items": [
-                {
-                  "label": "sessativ",
-                  "command": "SELECT pid,\n       usename AS usuario,\n       datname AS database,\n       client_addr AS ip_cliente,\n       application_name,\n       state,\n       query,\n       query_start\nFROM pg_stat_activity\nWHERE state <> 'idle'  -- Apenas sessões ativas\nORDER BY query_start ASC;"
-                }
-              ]
-            }
-          ]
         }
       ]
     },
