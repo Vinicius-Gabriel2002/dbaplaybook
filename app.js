@@ -621,8 +621,13 @@
         graph.push(entry);
       });
     });
-    const el = document.getElementById('topicSchema');
-    if (el) el.textContent = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+    const existing = document.getElementById('topicSchema');
+    if (existing) existing.remove();
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.id = 'topicSchema';
+    script.text = JSON.stringify({ '@context': 'https://schema.org', '@graph': graph });
+    document.head.appendChild(script);
   }
 
   // ── INIT ──
