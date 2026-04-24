@@ -183,6 +183,7 @@
 
     topicView.innerHTML = renderTopic(cat, topic);
     window.scrollTo(0, 0);
+    updateSEO(cat, topic);
 
     topicView.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -244,6 +245,42 @@
     `;
   }
 
+  // ── SEO ──
+  function updateSEO(cat, topic) {
+    const title = `${topic.title} (${cat.name}) — DBA Playbook`;
+    document.title = title;
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute('content', topic.description);
+
+    const steps = (topic.sections || []).find(s => s.type === 'steps');
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': steps ? 'HowTo' : 'Article',
+      'name': topic.title,
+      'description': topic.description,
+      'inLanguage': 'pt-BR',
+      'author': { '@type': 'Person', 'name': 'Vinicius Gabriel Lana' },
+      ...(steps ? {
+        'step': steps.items.map((item, i) => ({
+          '@type': 'HowToStep',
+          'position': i + 1,
+          'name': item.label,
+          'text': item.command || item.label
+        }))
+      } : {})
+    };
+    const el = document.getElementById('topicSchema');
+    if (el) el.textContent = JSON.stringify(schema);
+  }
+
+  function resetSEO() {
+    document.title = 'DBA Playbook — Comandos do Dia a Dia para DBAs';
+    document.querySelector('meta[name="description"]')
+      ?.setAttribute('content', 'Guia prático de comandos para DBAs. Oracle, SQL Server, PostgreSQL e MySQL — exemplos prontos para copiar e usar.');
+    const el = document.getElementById('topicSchema');
+    if (el) el.textContent = '';
+  }
+
   function callout(icon, text, type) {
     return `<div class="callout ${type}"><span class="callout-icon">${icon}</span><span>${text}</span></div>`;
   }
@@ -262,6 +299,7 @@
     setBackBtn(false);
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     window.scrollTo(0, 0);
+    resetSEO();
   };
 
   // ── DELETE ──
