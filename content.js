@@ -1,191 +1,213 @@
 const CONTENT = {
-  categories: [
+  "categories": [
     {
-      id: "oracle",
-      name: "Oracle",
-      color: "#C74634",
-      topics: [
+      "id": "oracle",
+      "name": "Oracle",
+      "color": "#C74634",
+      "topics": [
         {
-          id: "archivelog",
-          title: "Habilitar Archivelog",
-          tags: ["archivelog", "backup", "rman"],
-          description: "Ativa o modo de archivelog no banco para permitir backups online e recuperação point-in-time.",
-          sections: [
+          "id": "archivelog",
+          "title": "Habilitar Archivelog",
+          "tags": [
+            "archivelog",
+            "backup",
+            "rman"
+          ],
+          "description": "Ativa o modo de archivelog no banco para permitir backups online e recuperação point-in-time.",
+          "sections": [
             {
-              type: "warning",
-              text: "O banco precisa ser reiniciado. Planeje uma janela de manutenção."
+              "type": "warning",
+              "text": "O banco precisa ser reiniciado. Planeje uma janela de manutenção."
             },
             {
-              type: "steps",
-              title: "Passo a passo",
-              items: [
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
                 {
-                  label: "Conecte como SYSDBA",
-                  command: "sqlplus / as sysdba"
+                  "label": "Conecte como SYSDBA",
+                  "command": "sqlplus / as sysdba"
                 },
                 {
-                  label: "Verifique o status atual",
-                  command: "SELECT LOG_MODE FROM V$DATABASE;"
+                  "label": "Verifique o status atual",
+                  "command": "SELECT LOG_MODE FROM V$DATABASE;"
                 },
                 {
-                  label: "Desligue o banco de forma limpa",
-                  command: "SHUTDOWN IMMEDIATE;"
+                  "label": "Desligue o banco de forma limpa",
+                  "command": "SHUTDOWN IMMEDIATE;"
                 },
                 {
-                  label: "Suba em modo mount",
-                  command: "STARTUP MOUNT;"
+                  "label": "Suba em modo mount",
+                  "command": "STARTUP MOUNT;"
                 },
                 {
-                  label: "Habilite o archivelog",
-                  command: "ALTER DATABASE ARCHIVELOG;"
+                  "label": "Habilite o archivelog",
+                  "command": "ALTER DATABASE ARCHIVELOG;"
                 },
                 {
-                  label: "Abra o banco",
-                  command: "ALTER DATABASE OPEN;"
+                  "label": "Abra o banco",
+                  "command": "ALTER DATABASE OPEN;"
                 },
                 {
-                  label: "Confirme que está ativo",
-                  command: "SELECT LOG_MODE FROM V$DATABASE;"
+                  "label": "Confirme que está ativo",
+                  "command": "SELECT LOG_MODE FROM V$DATABASE;"
                 }
               ]
             },
             {
-              type: "result",
-              text: "O retorno esperado é: ARCHIVELOG"
+              "type": "result",
+              "text": "O retorno esperado é: ARCHIVELOG"
             }
           ]
         },
         {
-          id: "redolog-multiplexar",
-          title: "Multiplexar Redo Logs",
-          tags: ["redolog", "multiplexar", "segurança"],
-          description: "Adiciona membros extras aos grupos de redo log para proteção contra perda de dados.",
-          sections: [
+          "id": "redolog-multiplexar",
+          "title": "Multiplexar Redo Logs",
+          "tags": [
+            "redolog",
+            "multiplexar",
+            "segurança"
+          ],
+          "description": "Adiciona membros extras aos grupos de redo log para proteção contra perda de dados.",
+          "sections": [
             {
-              type: "info",
-              text: "Multiplexar redo logs é uma boa prática. Em caso de falha de disco, o Oracle continua usando os membros restantes."
+              "type": "info",
+              "text": "Multiplexar redo logs é uma boa prática. Em caso de falha de disco, o Oracle continua usando os membros restantes."
             },
             {
-              type: "steps",
-              title: "Passo a passo",
-              items: [
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
                 {
-                  label: "Liste os grupos e membros existentes",
-                  command: "SELECT GROUP#, MEMBER FROM V$LOGFILE ORDER BY GROUP#;"
+                  "label": "Liste os grupos e membros existentes",
+                  "command": "SELECT GROUP#, MEMBER FROM V$LOGFILE ORDER BY GROUP#;"
                 },
                 {
-                  label: "Adicione um membro ao grupo 1",
-                  command: "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo01b.log' TO GROUP 1;"
+                  "label": "Adicione um membro ao grupo 1",
+                  "command": "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo01b.log' TO GROUP 1;"
                 },
                 {
-                  label: "Adicione um membro ao grupo 2",
-                  command: "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo02b.log' TO GROUP 2;"
+                  "label": "Adicione um membro ao grupo 2",
+                  "command": "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo02b.log' TO GROUP 2;"
                 },
                 {
-                  label: "Adicione um membro ao grupo 3",
-                  command: "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo03b.log' TO GROUP 3;"
+                  "label": "Adicione um membro ao grupo 3",
+                  "command": "ALTER DATABASE ADD LOGFILE MEMBER '/u02/oradata/redo03b.log' TO GROUP 3;"
                 },
                 {
-                  label: "Confirme a multiplexação",
-                  command: "SELECT GROUP#, MEMBER, STATUS FROM V$LOGFILE ORDER BY GROUP#;"
+                  "label": "Confirme a multiplexação",
+                  "command": "SELECT GROUP#, MEMBER, STATUS FROM V$LOGFILE ORDER BY GROUP#;"
                 }
               ]
             },
             {
-              type: "tip",
-              text: "Coloque os membros em discos físicos diferentes para garantir redundância real."
+              "type": "tip",
+              "text": "Coloque os membros em discos físicos diferentes para garantir redundância real."
             }
           ]
         },
         {
-          id: "locks-oracle",
-          title: "Verificar e Matar Locks",
-          tags: ["lock", "bloqueio", "sessão", "kill session"],
-          description: "Identifica sessões bloqueando outras e encerra o lock quando necessário.",
-          sections: [
+          "id": "locks-oracle",
+          "title": "Verificar e Matar Locks",
+          "tags": [
+            "lock",
+            "bloqueio",
+            "sessão",
+            "kill session"
+          ],
+          "description": "Identifica sessões bloqueando outras e encerra o lock quando necessário.",
+          "sections": [
             {
-              type: "steps",
-              title: "Identificar locks",
-              items: [
+              "type": "steps",
+              "title": "Identificar locks",
+              "items": [
                 {
-                  label: "Liste sessões com lock",
-                  command: `SELECT
-  l.sid,
-  l.serial#,
-  l.username,
-  l.osuser,
-  l.machine,
-  l.status,
-  o.object_name,
-  l.lockwait
-FROM v$session l
-JOIN v$locked_object lo ON lo.session_id = l.sid
-JOIN dba_objects o ON o.object_id = lo.object_id
-ORDER BY l.sid;`
+                  "label": "Liste sessões com lock",
+                  "command": "SELECT\n  l.sid,\n  l.serial#,\n  l.username,\n  l.osuser,\n  l.machine,\n  l.status,\n  o.object_name,\n  l.lockwait\nFROM v$session l\nJOIN v$locked_object lo ON lo.session_id = l.sid\nJOIN dba_objects o ON o.object_id = lo.object_id\nORDER BY l.sid;"
                 },
                 {
-                  label: "Veja quem está bloqueando quem",
-                  command: `SELECT
-  w.sid AS sessao_esperando,
-  h.sid AS sessao_bloqueando,
-  w.username,
-  w.osuser,
-  w.machine
-FROM v$session w
-JOIN v$session h ON h.sid = (
-  SELECT blocking_session FROM v$session WHERE sid = w.sid
-)
-WHERE w.blocking_session IS NOT NULL;`
+                  "label": "Veja quem está bloqueando quem",
+                  "command": "SELECT\n  w.sid AS sessao_esperando,\n  h.sid AS sessao_bloqueando,\n  w.username,\n  w.osuser,\n  w.machine\nFROM v$session w\nJOIN v$session h ON h.sid = (\n  SELECT blocking_session FROM v$session WHERE sid = w.sid\n)\nWHERE w.blocking_session IS NOT NULL;"
                 },
                 {
-                  label: "Encerre a sessão bloqueadora (substitua SID e SERIAL#)",
-                  command: "ALTER SYSTEM KILL SESSION 'SID,SERIAL#' IMMEDIATE;"
+                  "label": "Encerre a sessão bloqueadora (substitua SID e SERIAL#)",
+                  "command": "ALTER SYSTEM KILL SESSION 'SID,SERIAL#' IMMEDIATE;"
                 }
               ]
             },
             {
-              type: "warning",
-              text: "Matar uma sessão faz rollback automático das transações pendentes. Confirme com o time de negócio antes."
+              "type": "warning",
+              "text": "Matar uma sessão faz rollback automático das transações pendentes. Confirme com o time de negócio antes."
             }
           ]
         },
         {
-          id: "tablespace-espaco",
-          title: "Verificar Espaço em Tablespaces",
-          tags: ["tablespace", "espaço", "disco", "crescimento"],
-          description: "Monitora o uso de espaço nas tablespaces para evitar surpresas em produção.",
-          sections: [
+          "id": "tablespace-espaco",
+          "title": "Verificar Espaço em Tablespaces",
+          "tags": [
+            "tablespace",
+            "espaço",
+            "disco",
+            "crescimento"
+          ],
+          "description": "Monitora o uso de espaço nas tablespaces para evitar surpresas em produção.",
+          "sections": [
             {
-              type: "steps",
-              title: "Queries úteis",
-              items: [
+              "type": "steps",
+              "title": "Queries úteis",
+              "items": [
                 {
-                  label: "Espaço livre por tablespace",
-                  command: `SELECT
-  df.tablespace_name,
-  ROUND(df.bytes / 1024 / 1024, 2) AS total_mb,
-  ROUND(NVL(fs.bytes, 0) / 1024 / 1024, 2) AS livre_mb,
-  ROUND((df.bytes - NVL(fs.bytes, 0)) / df.bytes * 100, 2) AS pct_usado
-FROM (
-  SELECT tablespace_name, SUM(bytes) bytes
-  FROM dba_data_files GROUP BY tablespace_name
-) df
-LEFT JOIN (
-  SELECT tablespace_name, SUM(bytes) bytes
-  FROM dba_free_space GROUP BY tablespace_name
-) fs ON df.tablespace_name = fs.tablespace_name
-ORDER BY pct_usado DESC;`
+                  "label": "Espaço livre por tablespace",
+                  "command": "SELECT\n  df.tablespace_name,\n  ROUND(df.bytes / 1024 / 1024, 2) AS total_mb,\n  ROUND(NVL(fs.bytes, 0) / 1024 / 1024, 2) AS livre_mb,\n  ROUND((df.bytes - NVL(fs.bytes, 0)) / df.bytes * 100, 2) AS pct_usado\nFROM (\n  SELECT tablespace_name, SUM(bytes) bytes\n  FROM dba_data_files GROUP BY tablespace_name\n) df\nLEFT JOIN (\n  SELECT tablespace_name, SUM(bytes) bytes\n  FROM dba_free_space GROUP BY tablespace_name\n) fs ON df.tablespace_name = fs.tablespace_name\nORDER BY pct_usado DESC;"
                 },
                 {
-                  label: "Datafiles com autoextend",
-                  command: `SELECT
-  tablespace_name,
-  file_name,
-  ROUND(bytes/1024/1024) AS size_mb,
-  autoextensible,
-  ROUND(maxbytes/1024/1024) AS max_mb
-FROM dba_data_files
-ORDER BY tablespace_name;`
+                  "label": "Datafiles com autoextend",
+                  "command": "SELECT\n  tablespace_name,\n  file_name,\n  ROUND(bytes/1024/1024) AS size_mb,\n  autoextensible,\n  ROUND(maxbytes/1024/1024) AS max_mb\nFROM dba_data_files\nORDER BY tablespace_name;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "custom-1776990070158",
+          "title": "Sessões ativas",
+          "description": "Coleta as sessões ativas do banco de dados Oracle",
+          "tags": [
+            "sessions",
+            "sessões",
+            "performance"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "sessativ",
+                  "command": "set pagesize 200\nset linesize 200\nset pause off\nset verify off\ncol inst           format 99\ncol username       format a12\ncol os_pid         format 9999999\ncol sessao         format a12\ncol machine        format a30\ncol programa       format a30 truncate\ncol machine_osuser format a40 truncate heading \"MACHINE: OSUSER\"\ncol log_time       format a10  heading 'HORARIO|DO LOGIN' justify right\ncol inicio_ult_cmd format a14 heading 'TEMPO ATIVO|OU INATIVO' justify right\ncol module         format a30\ncol status         format a8\n\nselect s.inst_id inst,\n       s.username,\n       to_number(p.spid) as os_pid,\n       '''' || to_char(s.sid) || ',' || to_char(s.serial#) || '''' as sessao,\n       s.machine || ': ' || s.osuser as machine_osuser,\n       SUBSTR(SUBSTR(s.program,INSTR(s.program,'\\',-1)+1),1,30) as programa,\n       decode( trunc(sysdate-s.logon_time),            -- dias conectado\n               0, to_char(s.logon_time,'hh24:mi:ss'),  -- se menos de um dia\n                  to_char(trunc(sysdate-s.logon_time, 1), 'fm99.0') || ' dias'\n             ) as log_time,\n       decode( trunc(last_call_et/86400),  -- 86400 seg = 1 dia\n               0, '     ',                 -- se 0 dias, coloca brancos\n                  to_char(trunc(last_call_et/60/60/24), '0') || 'd, ')\n       || to_char( to_date(mod(last_call_et, 86400), 'SSSSS'),\n                              'hh24\"h\"MI\"m\"SS\"s\"'\n                 ) as inicio_ult_cmd,\n       SUBSTR(SUBSTR(s.module,INSTR(s.module,'\\',-1)+1),1,30)   as module,\n           s.sql_id,\n       decode(status, 'ACTIVE', 'ATIVO',\n                      'INACTIVE', 'INATIVO',\n                      status) as status\nfrom gv$session s, gv$process p\nwhere s.username is not null\nand s.inst_id = p.inst_id\nand s.paddr = p.addr\nand s.status = 'ACTIVE'\norder by inicio_ult_cmd, status, s.username;\n\nset feedback 6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "custom-1776991258716",
+          "title": "Conceder grant em todas as tabelass",
+          "description": "Concede grants em todas as tabelas de um owner para outro",
+          "tags": [
+            "Grant"
+          ],
+          "sections": [
+            {
+              "type": "tip",
+              "text": "A consulta abaixo concede grant de SELECT de todas as tabelas de um owner para outro, para conceder grant de escrita basta adicionar \"UPDATE,INSERT,DELETE\" na linha do grant"
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "grant select all tables",
+                  "command": "-- grants para todas as tabelas: \nset lines 300 pages 10000\nset serverout on\nDECLARE\n  -- Privilegios e grants\n  CURSOR C1( P_CONSULTA VARCHAR2\n           , P_OWNER    VARCHAR2 ) IS\n  SELECT 'GRANT SELECT ON \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\" TO '|| P_CONSULTA ||'' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW')\nUNION\n  SELECT 'CREATE SYNONYM  '||P_CONSULTA||'.\"'|| OBJECT_NAME ||'\" FOR \"'|| OWNER || '\".\"' || OBJECT_NAME ||'\"' SQL_STRING\n    FROM DBA_OBJECTS\n   WHERE OWNER = P_OWNER\n     AND OBJECT_TYPE IN ('TABLE','VIEW','PACKAGE','PROCEDURE','PACKAGE BODY','FUNCTION');\n  R1 C1%ROWTYPE;   \nBEGIN\n  -- Usuario que ganhara os grants / usuarios que possuem as tabelas.\n  FOR R1 IN C1('HANDIT','VETORH') LOOP\n     -- DBMS_OUTPUT.PUT_LINE(R1.SQL_STRING);\n\t BEGIN\n       EXECUTE IMMEDIATE R1.SQL_STRING;\n\t EXCEPTION\n       WHEN OTHERS THEN\n\t     dbms_output.put_line(R1.SQL_STRING || ' Erro: ' || SQLERRM);\n\t END;\t\n  END LOOP;\nEND;\n /"
                 }
               ]
             }
@@ -194,167 +216,145 @@ ORDER BY tablespace_name;`
       ]
     },
     {
-      id: "sqlserver",
-      name: "SQL Server",
-      color: "#2732cc",
-      topics: [
+      "id": "sqlserver",
+      "name": "SQL Server",
+      "color": "#2732cc",
+      "topics": [
         {
-          id: "locks-sqlserver",
-          title: "Verificar e Matar Locks",
-          tags: ["lock", "bloqueio", "sessão", "kill"],
-          description: "Identifica sessões bloqueadas e encerra processos travados no SQL Server.",
-          sections: [
+          "id": "locks-sqlserver",
+          "title": "Verificar e Matar Locks",
+          "tags": [
+            "lock",
+            "bloqueio",
+            "sessão",
+            "kill"
+          ],
+          "description": "Identifica sessões bloqueadas e encerra processos travados no SQL Server.",
+          "sections": [
             {
-              type: "steps",
-              title: "Identificar locks",
-              items: [
+              "type": "steps",
+              "title": "Identificar locks",
+              "items": [
                 {
-                  label: "Liste sessões bloqueadas",
-                  command: `SELECT
-  r.session_id AS sessao_bloqueada,
-  r.blocking_session_id AS bloqueador,
-  r.wait_type,
-  r.wait_time / 1000 AS espera_seg,
-  t.text AS sql_executado
-FROM sys.dm_exec_requests r
-CROSS APPLY sys.dm_exec_sql_text(r.sql_handle) t
-WHERE r.blocking_session_id > 0;`
+                  "label": "Liste sessões bloqueadas",
+                  "command": "SELECT\n  r.session_id AS sessao_bloqueada,\n  r.blocking_session_id AS bloqueador,\n  r.wait_type,\n  r.wait_time / 1000 AS espera_seg,\n  t.text AS sql_executado\nFROM sys.dm_exec_requests r\nCROSS APPLY sys.dm_exec_sql_text(r.sql_handle) t\nWHERE r.blocking_session_id > 0;"
                 },
                 {
-                  label: "Detalhes da sessão bloqueadora",
-                  command: `SELECT
-  session_id,
-  login_name,
-  host_name,
-  program_name,
-  status,
-  last_request_start_time
-FROM sys.dm_exec_sessions
-WHERE session_id = <BLOQUEADOR_ID>;`
+                  "label": "Detalhes da sessão bloqueadora",
+                  "command": "SELECT\n  session_id,\n  login_name,\n  host_name,\n  program_name,\n  status,\n  last_request_start_time\nFROM sys.dm_exec_sessions\nWHERE session_id = <BLOQUEADOR_ID>;"
                 },
                 {
-                  label: "Encerre a sessão bloqueadora",
-                  command: "KILL <SESSION_ID>;"
+                  "label": "Encerre a sessão bloqueadora",
+                  "command": "KILL <SESSION_ID>;"
                 }
               ]
             },
             {
-              type: "tip",
-              text: "Use sp_who2 para uma visão rápida de todas as sessões ativas e seus bloqueios."
+              "type": "tip",
+              "text": "Use sp_who2 para uma visão rápida de todas as sessões ativas e seus bloqueios."
             }
           ]
         },
         {
-          id: "update-build",
-          title: "Atualizar Build (Patch / CU)",
-          tags: ["patch", "cumulative update", "cu", "atualização"],
-          description: "Processo para aplicar Cumulative Updates (CU) ou Service Packs no SQL Server.",
-          sections: [
+          "id": "update-build",
+          "title": "Atualizar Build (Patch / CU)",
+          "tags": [
+            "patch",
+            "cumulative update",
+            "cu",
+            "atualização"
+          ],
+          "description": "Processo para aplicar Cumulative Updates (CU) ou Service Packs no SQL Server.",
+          "sections": [
             {
-              type: "warning",
-              text: "Sempre faça backup completo antes de aplicar patches. Teste em ambiente de homologação primeiro."
+              "type": "warning",
+              "text": "Sempre faça backup completo antes de aplicar patches. Teste em ambiente de homologação primeiro."
             },
             {
-              type: "steps",
-              title: "Pré-atualização",
-              items: [
+              "type": "steps",
+              "title": "Pré-atualização",
+              "items": [
                 {
-                  label: "Verifique a versão atual",
-                  command: "SELECT @@VERSION;"
+                  "label": "Verifique a versão atual",
+                  "command": "SELECT @@VERSION;"
                 },
                 {
-                  label: "Faça backup de todos os bancos",
-                  command: `EXEC sp_MSforeachdb
-  'IF ''?'' NOT IN (''tempdb'')
-   BACKUP DATABASE [?]
-   TO DISK = ''C:\\Backup\\?_pre_patch.bak''
-   WITH COMPRESSION, STATS = 10';`
+                  "label": "Faça backup de todos os bancos",
+                  "command": "EXEC sp_MSforeachdb\n  'IF ''?'' NOT IN (''tempdb'')\n   BACKUP DATABASE [?]\n   TO DISK = ''C:\\Backup\\?_pre_patch.bak''\n   WITH COMPRESSION, STATS = 10';"
                 },
                 {
-                  label: "Verifique integridade antes do patch",
-                  command: `EXEC sp_MSforeachdb
-  'DBCC CHECKDB([?]) WITH NO_INFOMSGS';`
+                  "label": "Verifique integridade antes do patch",
+                  "command": "EXEC sp_MSforeachdb\n  'DBCC CHECKDB([?]) WITH NO_INFOMSGS';"
                 }
               ]
             },
             {
-              type: "steps",
-              title: "Pós-atualização",
-              items: [
+              "type": "steps",
+              "title": "Pós-atualização",
+              "items": [
                 {
-                  label: "Confirme a nova versão",
-                  command: "SELECT @@VERSION;"
+                  "label": "Confirme a nova versão",
+                  "command": "SELECT @@VERSION;"
                 },
                 {
-                  label: "Verifique o nível de compatibilidade dos bancos",
-                  command: `SELECT name, compatibility_level
-FROM sys.databases
-ORDER BY name;`
+                  "label": "Verifique o nível de compatibilidade dos bancos",
+                  "command": "SELECT name, compatibility_level\nFROM sys.databases\nORDER BY name;"
                 },
                 {
-                  label: "Atualize estatísticas",
-                  command: `EXEC sp_MSforeachdb
-  'USE [?]; EXEC sp_updatestats';`
+                  "label": "Atualize estatísticas",
+                  "command": "EXEC sp_MSforeachdb\n  'USE [?]; EXEC sp_updatestats';"
                 }
               ]
             },
             {
-              type: "result",
-              text: "O instalador do CU para serviços SQL durante a aplicação. O downtime varia entre 5 e 30 minutos dependendo do ambiente."
+              "type": "result",
+              "text": "O instalador do CU para serviços SQL durante a aplicação. O downtime varia entre 5 e 30 minutos dependendo do ambiente."
             }
           ]
         },
         {
-          id: "backup-restore",
-          title: "Backup e Restore",
-          tags: ["backup", "restore", "recovery"],
-          description: "Comandos essenciais de backup completo, diferencial e de log, e como restaurar.",
-          sections: [
+          "id": "backup-restore",
+          "title": "Backup e Restore",
+          "tags": [
+            "backup",
+            "restore",
+            "recovery"
+          ],
+          "description": "Comandos essenciais de backup completo, diferencial e de log, e como restaurar.",
+          "sections": [
             {
-              type: "steps",
-              title: "Backup",
-              items: [
+              "type": "steps",
+              "title": "Backup",
+              "items": [
                 {
-                  label: "Backup completo (FULL)",
-                  command: `BACKUP DATABASE [NomeBanco]
-TO DISK = 'C:\\Backup\\NomeBanco_FULL.bak'
-WITH COMPRESSION, CHECKSUM, STATS = 10;`
+                  "label": "Backup completo (FULL)",
+                  "command": "BACKUP DATABASE [NomeBanco]\nTO DISK = 'C:\\Backup\\NomeBanco_FULL.bak'\nWITH COMPRESSION, CHECKSUM, STATS = 10;"
                 },
                 {
-                  label: "Backup diferencial",
-                  command: `BACKUP DATABASE [NomeBanco]
-TO DISK = 'C:\\Backup\\NomeBanco_DIFF.bak'
-WITH DIFFERENTIAL, COMPRESSION, STATS = 10;`
+                  "label": "Backup diferencial",
+                  "command": "BACKUP DATABASE [NomeBanco]\nTO DISK = 'C:\\Backup\\NomeBanco_DIFF.bak'\nWITH DIFFERENTIAL, COMPRESSION, STATS = 10;"
                 },
                 {
-                  label: "Backup de log de transações",
-                  command: `BACKUP LOG [NomeBanco]
-TO DISK = 'C:\\Backup\\NomeBanco_LOG.bak'
-WITH COMPRESSION, STATS = 10;`
+                  "label": "Backup de log de transações",
+                  "command": "BACKUP LOG [NomeBanco]\nTO DISK = 'C:\\Backup\\NomeBanco_LOG.bak'\nWITH COMPRESSION, STATS = 10;"
                 }
               ]
             },
             {
-              type: "steps",
-              title: "Restore",
-              items: [
+              "type": "steps",
+              "title": "Restore",
+              "items": [
                 {
-                  label: "Restaure o FULL (com NORECOVERY se houver DIFF/LOG depois)",
-                  command: `RESTORE DATABASE [NomeBanco]
-FROM DISK = 'C:\\Backup\\NomeBanco_FULL.bak'
-WITH NORECOVERY, STATS = 10;`
+                  "label": "Restaure o FULL (com NORECOVERY se houver DIFF/LOG depois)",
+                  "command": "RESTORE DATABASE [NomeBanco]\nFROM DISK = 'C:\\Backup\\NomeBanco_FULL.bak'\nWITH NORECOVERY, STATS = 10;"
                 },
                 {
-                  label: "Aplique o diferencial",
-                  command: `RESTORE DATABASE [NomeBanco]
-FROM DISK = 'C:\\Backup\\NomeBanco_DIFF.bak'
-WITH NORECOVERY, STATS = 10;`
+                  "label": "Aplique o diferencial",
+                  "command": "RESTORE DATABASE [NomeBanco]\nFROM DISK = 'C:\\Backup\\NomeBanco_DIFF.bak'\nWITH NORECOVERY, STATS = 10;"
                 },
                 {
-                  label: "Aplique o log e finalize",
-                  command: `RESTORE LOG [NomeBanco]
-FROM DISK = 'C:\\Backup\\NomeBanco_LOG.bak'
-WITH RECOVERY;`
+                  "label": "Aplique o log e finalize",
+                  "command": "RESTORE LOG [NomeBanco]\nFROM DISK = 'C:\\Backup\\NomeBanco_LOG.bak'\nWITH RECOVERY;"
                 }
               ]
             }
@@ -363,90 +363,104 @@ WITH RECOVERY;`
       ]
     },
     {
-      id: "postgresql",
-      name: "PostgreSQL",
-      color: "#10ad45",
-      topics: [
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "color": "#10ad45",
+      "topics": [
         {
-          id: "locks-postgres",
-          title: "Verificar e Matar Locks",
-          tags: ["lock", "bloqueio", "pg_locks", "terminate"],
-          description: "Identifica sessões com locks e encerra processos bloqueados no PostgreSQL.",
-          sections: [
+          "id": "locks-postgres",
+          "title": "Verificar e Matar Locks",
+          "tags": [
+            "lock",
+            "bloqueio",
+            "pg_locks",
+            "terminate"
+          ],
+          "description": "Identifica sessões com locks e encerra processos bloqueados no PostgreSQL.",
+          "sections": [
             {
-              type: "steps",
-              title: "Identificar locks",
-              items: [
+              "type": "steps",
+              "title": "Identificar locks",
+              "items": [
                 {
-                  label: "Liste todas as sessões bloqueadas",
-                  command: `SELECT
-  blocked.pid AS pid_bloqueado,
-  blocked.usename AS usuario,
-  blocked.query AS query_bloqueada,
-  blocking.pid AS pid_bloqueador,
-  blocking.query AS query_bloqueadora
-FROM pg_stat_activity blocked
-JOIN pg_stat_activity blocking
-  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))
-WHERE cardinality(pg_blocking_pids(blocked.pid)) > 0;`
+                  "label": "Liste todas as sessões bloqueadas",
+                  "command": "SELECT\n  blocked.pid AS pid_bloqueado,\n  blocked.usename AS usuario,\n  blocked.query AS query_bloqueada,\n  blocking.pid AS pid_bloqueador,\n  blocking.query AS query_bloqueadora\nFROM pg_stat_activity blocked\nJOIN pg_stat_activity blocking\n  ON blocking.pid = ANY(pg_blocking_pids(blocked.pid))\nWHERE cardinality(pg_blocking_pids(blocked.pid)) > 0;"
                 },
                 {
-                  label: "Cancele apenas a query (mantém a conexão)",
-                  command: "SELECT pg_cancel_backend(<PID>);"
+                  "label": "Cancele apenas a query (mantém a conexão)",
+                  "command": "SELECT pg_cancel_backend(<PID>);"
                 },
                 {
-                  label: "Encerre a sessão inteira",
-                  command: "SELECT pg_terminate_backend(<PID>);"
+                  "label": "Encerre a sessão inteira",
+                  "command": "SELECT pg_terminate_backend(<PID>);"
                 }
               ]
             },
             {
-              type: "tip",
-              text: "Use pg_cancel_backend quando quiser apenas interromper a query sem derrubar a conexão do usuário."
+              "type": "tip",
+              "text": "Use pg_cancel_backend quando quiser apenas interromper a query sem derrubar a conexão do usuário."
             }
           ]
         },
         {
-          id: "vacuum-analyze",
-          title: "VACUUM e ANALYZE",
-          tags: ["vacuum", "analyze", "bloat", "performance"],
-          description: "Recupera espaço e atualiza estatísticas para o planner de queries.",
-          sections: [
+          "id": "vacuum-analyze",
+          "title": "VACUUM e ANALYZE",
+          "tags": [
+            "vacuum",
+            "analyze",
+            "bloat",
+            "performance"
+          ],
+          "description": "Recupera espaço e atualiza estatísticas para o planner de queries.",
+          "sections": [
             {
-              type: "info",
-              text: "O autovacuum cuida disso automaticamente, mas em tabelas muito movimentadas pode ser necessário executar manualmente."
+              "type": "info",
+              "text": "O autovacuum cuida disso automaticamente, mas em tabelas muito movimentadas pode ser necessário executar manualmente."
             },
             {
-              type: "steps",
-              title: "Comandos",
-              items: [
+              "type": "steps",
+              "title": "Comandos",
+              "items": [
                 {
-                  label: "VACUUM simples (libera espaço para reuso interno)",
-                  command: "VACUUM NomeDaTabela;"
+                  "label": "VACUUM simples (libera espaço para reuso interno)",
+                  "command": "VACUUM NomeDaTabela;"
                 },
                 {
-                  label: "VACUUM FULL (compacta o arquivo físico — tabela fica locked)",
-                  command: "VACUUM FULL NomeDaTabela;"
+                  "label": "VACUUM FULL (compacta o arquivo físico — tabela fica locked)",
+                  "command": "VACUUM FULL NomeDaTabela;"
                 },
                 {
-                  label: "ANALYZE (atualiza estatísticas para o planner)",
-                  command: "ANALYZE NomeDaTabela;"
+                  "label": "ANALYZE (atualiza estatísticas para o planner)",
+                  "command": "ANALYZE NomeDaTabela;"
                 },
                 {
-                  label: "Os dois juntos",
-                  command: "VACUUM ANALYZE NomeDaTabela;"
+                  "label": "Os dois juntos",
+                  "command": "VACUUM ANALYZE NomeDaTabela;"
                 },
                 {
-                  label: "Verifique tabelas com mais dead tuples",
-                  command: `SELECT
-  schemaname,
-  relname AS tabela,
-  n_dead_tup AS dead_tuples,
-  n_live_tup AS live_tuples,
-  last_autovacuum
-FROM pg_stat_user_tables
-ORDER BY n_dead_tup DESC
-LIMIT 20;`
+                  "label": "Verifique tabelas com mais dead tuples",
+                  "command": "SELECT\n  schemaname,\n  relname AS tabela,\n  n_dead_tup AS dead_tuples,\n  n_live_tup AS live_tuples,\n  last_autovacuum\nFROM pg_stat_user_tables\nORDER BY n_dead_tup DESC\nLIMIT 20;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "custom-1776993417287",
+          "title": "Sessões ativas",
+          "description": "Lista todas as sessões ativas do postgres",
+          "tags": [
+            "sessões",
+            "sessions"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "sessativ",
+                  "command": "SELECT pid,\n       usename AS usuario,\n       datname AS database,\n       client_addr AS ip_cliente,\n       application_name,\n       state,\n       query,\n       query_start\nFROM pg_stat_activity\nWHERE state <> 'idle'  -- Apenas sessões ativas\nORDER BY query_start ASC;"
                 }
               ]
             }
@@ -455,160 +469,161 @@ LIMIT 20;`
       ]
     },
     {
-      id: "mysql",
-      name: "MySQL",
-      color: "#F29111",
-      topics: [
+      "id": "mysql",
+      "name": "MySQL",
+      "color": "#F29111",
+      "topics": [
         {
-          id: "locks-mysql",
-          title: "Verificar e Matar Locks",
-          tags: ["lock", "bloqueio", "innodb", "kill", "processlist"],
-          description: "Identifica transações bloqueadas e encerra processos travados no MySQL/InnoDB.",
-          sections: [
+          "id": "locks-mysql",
+          "title": "Verificar e Matar Locks",
+          "tags": [
+            "lock",
+            "bloqueio",
+            "innodb",
+            "kill",
+            "processlist"
+          ],
+          "description": "Identifica transações bloqueadas e encerra processos travados no MySQL/InnoDB.",
+          "sections": [
             {
-              type: "steps",
-              title: "Identificar locks",
-              items: [
+              "type": "steps",
+              "title": "Identificar locks",
+              "items": [
                 {
-                  label: "Visão rápida de todos os processos ativos",
-                  command: "SHOW PROCESSLIST;"
+                  "label": "Visão rápida de todos os processos ativos",
+                  "command": "SHOW PROCESSLIST;"
                 },
                 {
-                  label: "Detalhe de bloqueios entre transações (InnoDB)",
-                  command: `SELECT
-  r.trx_id AS trx_bloqueada,
-  r.trx_mysql_thread_id AS thread_bloqueado,
-  r.trx_query AS query_bloqueada,
-  b.trx_id AS trx_bloqueadora,
-  b.trx_mysql_thread_id AS thread_bloqueador,
-  b.trx_query AS query_bloqueadora
-FROM information_schema.innodb_lock_waits w
-JOIN information_schema.innodb_trx r ON r.trx_id = w.requesting_trx_id
-JOIN information_schema.innodb_trx b ON b.trx_id = w.blocking_trx_id;`
+                  "label": "Detalhe de bloqueios entre transações (InnoDB)",
+                  "command": "SELECT\n  r.trx_id AS trx_bloqueada,\n  r.trx_mysql_thread_id AS thread_bloqueado,\n  r.trx_query AS query_bloqueada,\n  b.trx_id AS trx_bloqueadora,\n  b.trx_mysql_thread_id AS thread_bloqueador,\n  b.trx_query AS query_bloqueadora\nFROM information_schema.innodb_lock_waits w\nJOIN information_schema.innodb_trx r ON r.trx_id = w.requesting_trx_id\nJOIN information_schema.innodb_trx b ON b.trx_id = w.blocking_trx_id;"
                 },
                 {
-                  label: "Encerre o processo bloqueador (substitua o ID)",
-                  command: "KILL <thread_id>;"
+                  "label": "Encerre o processo bloqueador (substitua o ID)",
+                  "command": "KILL <thread_id>;"
                 }
               ]
             },
             {
-              type: "tip",
-              text: "No MySQL 8+, use performance_schema.data_lock_waits no lugar de information_schema.innodb_lock_waits."
+              "type": "tip",
+              "text": "No MySQL 8+, use performance_schema.data_lock_waits no lugar de information_schema.innodb_lock_waits."
             }
           ]
         },
         {
-          id: "backup-mysql",
-          title: "Backup e Restore com mysqldump",
-          tags: ["backup", "restore", "mysqldump", "recovery"],
-          description: "Gera e restaura backups lógicos com o mysqldump, ferramenta padrão do MySQL.",
-          sections: [
+          "id": "backup-mysql",
+          "title": "Backup e Restore com mysqldump",
+          "tags": [
+            "backup",
+            "restore",
+            "mysqldump",
+            "recovery"
+          ],
+          "description": "Gera e restaura backups lógicos com o mysqldump, ferramenta padrão do MySQL.",
+          "sections": [
             {
-              type: "warning",
-              text: "O mysqldump bloqueia as tabelas durante o dump em tabelas MyISAM. Use --single-transaction para InnoDB sem bloqueio."
+              "type": "warning",
+              "text": "O mysqldump bloqueia as tabelas durante o dump em tabelas MyISAM. Use --single-transaction para InnoDB sem bloqueio."
             },
             {
-              type: "steps",
-              title: "Backup",
-              items: [
+              "type": "steps",
+              "title": "Backup",
+              "items": [
                 {
-                  label: "Backup de um banco específico",
-                  command: "mysqldump -u root -p --single-transaction nome_banco > backup_banco.sql"
+                  "label": "Backup de um banco específico",
+                  "command": "mysqldump -u root -p --single-transaction nome_banco > backup_banco.sql"
                 },
                 {
-                  label: "Backup de todos os bancos",
-                  command: "mysqldump -u root -p --all-databases --single-transaction > backup_full.sql"
+                  "label": "Backup de todos os bancos",
+                  "command": "mysqldump -u root -p --all-databases --single-transaction > backup_full.sql"
                 },
                 {
-                  label: "Backup comprimido (economiza espaço)",
-                  command: "mysqldump -u root -p --single-transaction nome_banco | gzip > backup_banco.sql.gz"
+                  "label": "Backup comprimido (economiza espaço)",
+                  "command": "mysqldump -u root -p --single-transaction nome_banco | gzip > backup_banco.sql.gz"
                 }
               ]
             },
             {
-              type: "steps",
-              title: "Restore",
-              items: [
+              "type": "steps",
+              "title": "Restore",
+              "items": [
                 {
-                  label: "Restaure um banco a partir do .sql",
-                  command: "mysql -u root -p nome_banco < backup_banco.sql"
+                  "label": "Restaure um banco a partir do .sql",
+                  "command": "mysql -u root -p nome_banco < backup_banco.sql"
                 },
                 {
-                  label: "Restaure a partir de arquivo comprimido",
-                  command: "gunzip < backup_banco.sql.gz | mysql -u root -p nome_banco"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          id: "tamanho-databases-mysql",
-          title: "Verificar Tamanho das Databases",
-          tags: ["tamanho", "espaço", "disco", "information_schema"],
-          description: "Consulta o espaço utilizado por databases e tabelas direto do catálogo do MySQL.",
-          sections: [
-            {
-              type: "steps",
-              title: "Queries úteis",
-              items: [
-                {
-                  label: "Tamanho de todas as databases",
-                  command: `SELECT
-  table_schema AS database_name,
-  ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS total_mb
-FROM information_schema.tables
-GROUP BY table_schema
-ORDER BY total_mb DESC;`
-                },
-                {
-                  label: "Tamanho por tabela dentro de um banco",
-                  command: `SELECT
-  table_name AS tabela,
-  ROUND((data_length + index_length) / 1024 / 1024, 2) AS total_mb,
-  ROUND(data_length / 1024 / 1024, 2) AS dados_mb,
-  ROUND(index_length / 1024 / 1024, 2) AS indices_mb
-FROM information_schema.tables
-WHERE table_schema = 'nome_banco'
-ORDER BY total_mb DESC;`
+                  "label": "Restaure a partir de arquivo comprimido",
+                  "command": "gunzip < backup_banco.sql.gz | mysql -u root -p nome_banco"
                 }
               ]
             }
           ]
         },
         {
-          id: "usuarios-privilegios-mysql",
-          title: "Gerenciar Usuários e Privilégios",
-          tags: ["usuário", "grant", "privilégio", "permissão", "create user"],
-          description: "Cria usuários, concede e revoga permissões no MySQL.",
-          sections: [
+          "id": "tamanho-databases-mysql",
+          "title": "Verificar Tamanho das Databases",
+          "tags": [
+            "tamanho",
+            "espaço",
+            "disco",
+            "information_schema"
+          ],
+          "description": "Consulta o espaço utilizado por databases e tabelas direto do catálogo do MySQL.",
+          "sections": [
             {
-              type: "steps",
-              title: "Usuários",
-              items: [
+              "type": "steps",
+              "title": "Queries úteis",
+              "items": [
                 {
-                  label: "Crie um novo usuário",
-                  command: "CREATE USER 'nome_usuario'@'%' IDENTIFIED BY 'senha_forte';"
+                  "label": "Tamanho de todas as databases",
+                  "command": "SELECT\n  table_schema AS database_name,\n  ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS total_mb\nFROM information_schema.tables\nGROUP BY table_schema\nORDER BY total_mb DESC;"
                 },
                 {
-                  label: "Conceda todas as permissões em um banco",
-                  command: "GRANT ALL PRIVILEGES ON nome_banco.* TO 'nome_usuario'@'%';"
+                  "label": "Tamanho por tabela dentro de um banco",
+                  "command": "SELECT\n  table_name AS tabela,\n  ROUND((data_length + index_length) / 1024 / 1024, 2) AS total_mb,\n  ROUND(data_length / 1024 / 1024, 2) AS dados_mb,\n  ROUND(index_length / 1024 / 1024, 2) AS indices_mb\nFROM information_schema.tables\nWHERE table_schema = 'nome_banco'\nORDER BY total_mb DESC;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "usuarios-privilegios-mysql",
+          "title": "Gerenciar Usuários e Privilégios",
+          "tags": [
+            "usuário",
+            "grant",
+            "privilégio",
+            "permissão",
+            "create user"
+          ],
+          "description": "Cria usuários, concede e revoga permissões no MySQL.",
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Usuários",
+              "items": [
+                {
+                  "label": "Crie um novo usuário",
+                  "command": "CREATE USER 'nome_usuario'@'%' IDENTIFIED BY 'senha_forte';"
                 },
                 {
-                  label: "Conceda apenas leitura",
-                  command: "GRANT SELECT ON nome_banco.* TO 'nome_usuario'@'%';"
+                  "label": "Conceda todas as permissões em um banco",
+                  "command": "GRANT ALL PRIVILEGES ON nome_banco.* TO 'nome_usuario'@'%';"
                 },
                 {
-                  label: "Aplique as permissões",
-                  command: "FLUSH PRIVILEGES;"
+                  "label": "Conceda apenas leitura",
+                  "command": "GRANT SELECT ON nome_banco.* TO 'nome_usuario'@'%';"
                 },
                 {
-                  label: "Veja as permissões de um usuário",
-                  command: "SHOW GRANTS FOR 'nome_usuario'@'%';"
+                  "label": "Aplique as permissões",
+                  "command": "FLUSH PRIVILEGES;"
                 },
                 {
-                  label: "Revogue todas as permissões",
-                  command: "REVOKE ALL PRIVILEGES ON nome_banco.* FROM 'nome_usuario'@'%';"
+                  "label": "Veja as permissões de um usuário",
+                  "command": "SHOW GRANTS FOR 'nome_usuario'@'%';"
+                },
+                {
+                  "label": "Revogue todas as permissões",
+                  "command": "REVOKE ALL PRIVILEGES ON nome_banco.* FROM 'nome_usuario'@'%';"
                 }
               ]
             }
