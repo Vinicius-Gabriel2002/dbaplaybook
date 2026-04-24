@@ -54,43 +54,18 @@
     localStorage.removeItem('dba-admin-session');
   }
 
-  // ── GITHUB TOKEN ──
-  function getGithubToken() { return localStorage.getItem('dba-github-token') || ''; }
-  function saveGithubToken(t) { localStorage.setItem('dba-github-token', t.trim()); }
-
-  // ── GITHUB COMMIT ──
+  // ── GITHUB COMMIT (via Vercel serverless function) ──
   async function commitToGithub() {
-    const token = getGithubToken();
-    if (!token) { openTokenModal(); throw new Error('Configure o token do GitHub primeiro.'); }
-
-    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
-    const headers = {
-      'Authorization': `token ${token}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    };
-
-    const getRes = await fetch(url, { headers });
-    if (!getRes.ok) {
-      if (getRes.status === 401) { saveGithubToken(''); throw new Error('Token inválido. Configure novamente.'); }
-      throw new Error(`Erro ao conectar no GitHub (${getRes.status}).`);
-    }
-    const { sha } = await getRes.json();
-
-    const newContent = `const CONTENT = ${JSON.stringify(CONTENT, null, 2)};\n`;
-    const encoded    = btoa(unescape(encodeURIComponent(newContent)));
-
-    const putRes = await fetch(url, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({
-        message: 'chore: atualizar conteúdo via DBA Playbook editor',
-        content: encoded,
-        sha
-      })
+    const content = `const CONTENT = ${JSON.stringify(CONTENT, null, 2)};\n`;
+    const res = await fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: ADMIN_PASSWORD, content })
     });
-
-    if (!putRes.ok) throw new Error(`Erro ao publicar no GitHub (${putRes.status}).`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Erro ao publicar no GitHub.');
+    }
   }
 
   // ── TOAST ──
@@ -168,14 +143,7 @@
       navEl.appendChild(catEl);
     });
 
-    if (isAdmin) {
-      const cfgBtn = document.createElement('button');
-      cfgBtn.className = 'nav-export-btn';
-      cfgBtn.textContent = '⚙ Token GitHub';
-      cfgBtn.addEventListener('click', openTokenModal);
-      navEl.appendChild(cfgBtn);
     }
-  }
 
   // ── BUILD WELCOME ──
   function buildWelcome() {
@@ -493,7 +461,6 @@
       saveAdminSession();
       closeLoginModal();
       enableAdminMode();
-      if (!getGithubToken()) openTokenModal();
     } else {
       $('loginError').textContent = 'Senha incorreta.';
       $('loginPassword').value = '';
@@ -515,27 +482,6 @@
   function logout() {
     clearAdminSession();
     location.reload();
-  }
-
-  // ── MODAL: TOKEN ──
-  function openTokenModal() {
-    $('tokenInput').value = getGithubToken();
-    $('tokenModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => $('tokenInput').focus(), 50);
-  }
-
-  function closeTokenModal() {
-    $('tokenModal').classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-
-  function saveToken() {
-    const t = $('tokenInput').value.trim();
-    if (!t) return;
-    saveGithubToken(t);
-    closeTokenModal();
-    showToast('Token GitHub salvo com sucesso!');
   }
 
   // ── SEARCH ──
@@ -602,12 +548,6 @@
   $('loginCancelBtn').addEventListener('click', closeLoginModal);
   $('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
   $('loginModal').addEventListener('click', e => { if (e.target === $('loginModal')) closeLoginModal(); });
-
-  // Token modal
-  $('tokenSaveBtn').addEventListener('click', saveToken);
-  $('tokenCancelBtn').addEventListener('click', closeTokenModal);
-  $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveToken(); });
-  $('tokenModal').addEventListener('click', e => { if (e.target === $('tokenModal')) closeTokenModal(); });
 
   // Mobile sidebar
   function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('open'); }
