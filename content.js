@@ -363,6 +363,223 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "rman-backup",
+          "title": "Backup com RMAN",
+          "description": "Realiza backup completo do banco de dados utilizando o RMAN com compressão e valida a integridade dos backups.",
+          "tags": [
+            "backup",
+            "rman",
+            "full backup",
+            "recovery"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "Archivelog deve estar habilitado para backup online. Sem archivelog, o banco precisa estar fechado para backup consistente."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Conectar ao RMAN",
+                  "command": "rman target /"
+                },
+                {
+                  "label": "Verificar backups existentes",
+                  "command": "LIST BACKUP SUMMARY;"
+                },
+                {
+                  "label": "Full backup do banco com compressão",
+                  "command": "RUN {\n  ALLOCATE CHANNEL c1 DEVICE TYPE DISK FORMAT '/backup/rman/%d_%T_%s_%p.bkp';\n  BACKUP AS COMPRESSED BACKUPSET DATABASE INCLUDE CURRENT CONTROLFILE;\n  BACKUP ARCHIVELOG ALL DELETE INPUT;\n  RELEASE CHANNEL c1;\n}"
+                },
+                {
+                  "label": "Validar backup (sem restaurar)",
+                  "command": "RESTORE DATABASE VALIDATE;"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `DELETE OBSOLETE;` para remover backups antigos conforme a política de retenção configurada."
+            }
+          ]
+        },
+        {
+          "id": "datapump",
+          "title": "Export e Import com Data Pump",
+          "description": "Exporta e importa schemas ou tabelas utilizando o Data Pump (expdp/impdp), substituto moderno do exp/imp legado.",
+          "tags": [
+            "expdp",
+            "impdp",
+            "data pump",
+            "export",
+            "import"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "Data Pump é mais rápido que o exp/imp legado e requer um diretório Oracle criado no banco apontando para um caminho do sistema operacional."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Criar o diretório Oracle apontando para o SO",
+                  "command": "CREATE OR REPLACE DIRECTORY dir_dp AS '/backup/datapump';\nGRANT READ, WRITE ON DIRECTORY dir_dp TO <USUARIO>;"
+                },
+                {
+                  "label": "Export de um schema completo",
+                  "command": "expdp <USUARIO>/<SENHA> DIRECTORY=dir_dp DUMPFILE=schema_%date%.dmp LOGFILE=exp_schema.log SCHEMAS=<SCHEMA>"
+                },
+                {
+                  "label": "Export de tabelas específicas",
+                  "command": "expdp <USUARIO>/<SENHA> DIRECTORY=dir_dp DUMPFILE=tabelas.dmp LOGFILE=exp_tabelas.log TABLES=<SCHEMA>.<TABELA1>,<SCHEMA>.<TABELA2>"
+                },
+                {
+                  "label": "Import de schema",
+                  "command": "impdp <USUARIO>/<SENHA> DIRECTORY=dir_dp DUMPFILE=schema_%date%.dmp LOGFILE=imp_schema.log SCHEMAS=<SCHEMA>"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `REMAP_SCHEMA=origem:destino` no impdp para importar para um schema diferente do original."
+            }
+          ]
+        },
+        {
+          "id": "usuarios-permissoes-oracle",
+          "title": "Gerenciar Usuários e Permissões",
+          "description": "Cria usuários, concede e revoga permissões de sistema e de objetos, e controla o acesso no Oracle.",
+          "tags": [
+            "usuário",
+            "grant",
+            "revoke",
+            "role",
+            "permissão",
+            "create user"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Criar usuário",
+                  "command": "CREATE USER <USUARIO> IDENTIFIED BY <SENHA>\n  DEFAULT TABLESPACE users\n  TEMPORARY TABLESPACE temp\n  QUOTA UNLIMITED ON users;"
+                },
+                {
+                  "label": "Conceder permissões básicas (conectar e criar objetos)",
+                  "command": "GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW,\n      CREATE PROCEDURE, CREATE SEQUENCE TO <USUARIO>;"
+                },
+                {
+                  "label": "Conceder permissão em objeto específico",
+                  "command": "GRANT SELECT, INSERT, UPDATE, DELETE ON <SCHEMA>.<TABELA> TO <USUARIO>;"
+                },
+                {
+                  "label": "Ver todas as permissões de um usuário",
+                  "command": "-- System privileges\nSELECT privilege FROM dba_sys_privs WHERE grantee = '<USUARIO>'\nUNION\n-- Object privileges\nSELECT privilege || ' ON ' || owner || '.' || table_name\nFROM dba_tab_privs WHERE grantee = '<USUARIO>'\nORDER BY 1;"
+                },
+                {
+                  "label": "Bloquear e desbloquear usuário",
+                  "command": "-- Bloquear\nALTER USER <USUARIO> ACCOUNT LOCK;\n\n-- Desbloquear\nALTER USER <USUARIO> ACCOUNT UNLOCK;"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `GRANT <ROLE> TO <USUARIO>` para conceder roles pré-definidas como DBA, CONNECT ou RESOURCE."
+            }
+          ]
+        },
+        {
+          "id": "top-sql",
+          "title": "Top SQL — Queries Mais Pesadas",
+          "description": "Identifica as queries que mais consomem CPU e tempo de execução a partir da V$SQL (shared pool).",
+          "tags": [
+            "performance",
+            "tuning",
+            "sql_id",
+            "cpu",
+            "elapsed time",
+            "v$sql"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "A view V$SQL mantém as queries em memória (shared pool). Queries purgadas da memória não aparecem aqui — para histórico, use AWR (V$SQLAREA/DBA_HIST_SQLSTAT)."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Top 10 queries por elapsed time",
+                  "command": "SELECT sql_id,\n       ROUND(elapsed_time/1e6/executions, 2) AS avg_elapsed_sec,\n       ROUND(cpu_time/1e6/executions, 2)     AS avg_cpu_sec,\n       executions,\n       SUBSTR(sql_text, 1, 80)               AS sql_text\nFROM v$sql\nWHERE executions > 0\nORDER BY avg_elapsed_sec DESC\nFETCH FIRST 10 ROWS ONLY;"
+                },
+                {
+                  "label": "Top 10 queries por consumo de CPU",
+                  "command": "SELECT sql_id,\n       ROUND(cpu_time/1e6, 2)     AS total_cpu_sec,\n       ROUND(elapsed_time/1e6, 2) AS total_elapsed_sec,\n       executions,\n       SUBSTR(sql_text, 1, 80)    AS sql_text\nFROM v$sql\nWHERE executions > 0\nORDER BY total_cpu_sec DESC\nFETCH FIRST 10 ROWS ONLY;"
+                },
+                {
+                  "label": "Ver plano de execução de um SQL_ID",
+                  "command": "SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY_CURSOR('&sql_id', NULL, 'ALLSTATS LAST'));"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use o `sql_id` do resultado para buscar detalhes em V$SQL_PLAN ou para analisar com o SQL Tuning Advisor."
+            }
+          ]
+        },
+        {
+          "id": "alert-log",
+          "title": "Verificar Alert Log",
+          "description": "Localiza e consulta o alert log do Oracle para identificar erros críticos e eventos de startup/shutdown.",
+          "tags": [
+            "alert log",
+            "erros",
+            "diagnóstico",
+            "adr",
+            "ora-"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "O alert log registra startups, shutdowns, erros críticos e mensagens do Oracle. É o primeiro lugar a checar diante de qualquer problema."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Encontrar o caminho do alert log",
+                  "command": "SELECT value FROM v$diag_info WHERE name = 'Diag Trace';\n-- O arquivo se chama alert_<INSTANCIA>.log dentro dessa pasta"
+                },
+                {
+                  "label": "Ver o caminho do ADR Home",
+                  "command": "SELECT value FROM v$diag_info WHERE name = 'ADR Home';"
+                },
+                {
+                  "label": "Ver os últimos erros ORA- pelo banco de dados",
+                  "command": "SELECT originating_timestamp, message_text\nFROM v$diag_alert_ext\nWHERE message_text LIKE '%ORA-%'\n  AND originating_timestamp >= SYSDATE - 1\nORDER BY originating_timestamp DESC\nFETCH FIRST 50 ROWS ONLY;"
+                },
+                {
+                  "label": "No sistema operacional, acompanhar em tempo real",
+                  "command": "tail -f $ORACLE_BASE/diag/rdbms/<DB>/<INSTANCE>/trace/alert_<INSTANCE>.log"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Filtre por `ORA-600`, `ORA-7445` e `ORA-4031` — esses são os erros mais críticos do Oracle que sempre merecem atenção imediata."
+            }
+          ]
         }
       ]
     },
@@ -453,6 +670,196 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "espaco-databases-sqlserver",
+          "title": "Verificar Espaço das Databases",
+          "description": "Consulta o tamanho total, espaço usado e espaço livre de todas as databases e seus arquivos no SQL Server.",
+          "tags": [
+            "espaço",
+            "disco",
+            "database",
+            "tamanho",
+            "datafile"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Tamanho e espaço livre de todas as databases",
+                  "command": "SELECT\n  db.name AS database_name,\n  ROUND(SUM(mf.size) * 8.0 / 1024, 2) AS total_mb,\n  ROUND(SUM(mf.size) * 8.0 / 1024 -\n        SUM(FILEPROPERTY(mf.name, 'SpaceUsed') * 8.0 / 1024), 2) AS free_mb,\n  ROUND((SUM(FILEPROPERTY(mf.name, 'SpaceUsed') * 8.0 / 1024) /\n         NULLIF(SUM(mf.size) * 8.0 / 1024, 0)) * 100, 2) AS used_pct\nFROM sys.databases db\nJOIN sys.master_files mf ON db.database_id = mf.database_id\nWHERE mf.type = 0  -- apenas datafiles\nGROUP BY db.name\nORDER BY total_mb DESC;"
+                },
+                {
+                  "label": "Detalhes dos arquivos de uma database específica",
+                  "command": "USE [<NomeBanco>];\n\nSELECT\n  name,\n  physical_name,\n  ROUND(size * 8.0 / 1024, 2) AS size_mb,\n  ROUND(FILEPROPERTY(name, 'SpaceUsed') * 8.0 / 1024, 2) AS used_mb,\n  is_percent_growth,\n  growth,\n  ROUND(max_size * 8.0 / 1024, 2) AS max_size_mb\nFROM sys.database_files;"
+                },
+                {
+                  "label": "Espaço usado e livre pela stored procedure nativa",
+                  "command": "USE [<NomeBanco>];\nEXEC sp_spaceused;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "logins-usuarios-sqlserver",
+          "title": "Gerenciar Logins e Usuários",
+          "description": "Cria logins e usuários no SQL Server, associa a roles e controla o acesso às databases.",
+          "tags": [
+            "login",
+            "usuário",
+            "permissão",
+            "role",
+            "grant",
+            "create login"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Criar login SQL Server (autenticação SQL)",
+                  "command": "CREATE LOGIN <login_name>\n  WITH PASSWORD = '<senha_forte>',\n       CHECK_POLICY = ON,\n       CHECK_EXPIRATION = OFF;"
+                },
+                {
+                  "label": "Criar usuário no banco de dados e associar ao login",
+                  "command": "USE [<NomeBanco>];\nCREATE USER <user_name> FOR LOGIN <login_name>;"
+                },
+                {
+                  "label": "Adicionar a uma role de banco de dados",
+                  "command": "USE [<NomeBanco>];\n-- Opções: db_owner, db_datareader, db_datawriter, db_ddladmin\nALTER ROLE db_datareader ADD MEMBER <user_name>;\nALTER ROLE db_datawriter ADD MEMBER <user_name>;"
+                },
+                {
+                  "label": "Ver permissões de um usuário",
+                  "command": "SELECT dp.name AS principal, dp.type_desc, p.permission_name, p.state_desc\nFROM sys.database_permissions p\nJOIN sys.database_principals dp ON p.grantee_principal_id = dp.principal_id\nWHERE dp.name = '<user_name>'\nORDER BY p.permission_name;"
+                },
+                {
+                  "label": "Desabilitar e habilitar um login",
+                  "command": "-- Desabilitar\nALTER LOGIN <login_name> DISABLE;\n\n-- Habilitar\nALTER LOGIN <login_name> ENABLE;"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `IS_SRVROLEMEMBER('sysadmin', '<login_name>')` para verificar se um login tem privilégio de sysadmin."
+            }
+          ]
+        },
+        {
+          "id": "top-queries-sqlserver",
+          "title": "Queries Mais Pesadas",
+          "description": "Identifica as queries que mais consomem CPU e tempo de execução usando as DMVs dm_exec_query_stats e dm_exec_sql_text.",
+          "tags": [
+            "performance",
+            "tuning",
+            "query stats",
+            "dm_exec",
+            "cpu",
+            "elapsed time"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "As views de gerenciamento dinâmico `dm_exec_*` mantêm estatísticas desde o último restart do SQL Server ou da entrada do plano no cache."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Top 10 queries por CPU total consumido",
+                  "command": "SELECT TOP 10\n  qs.total_worker_time / qs.execution_count AS avg_cpu_us,\n  qs.total_worker_time                       AS total_cpu_us,\n  qs.execution_count,\n  qs.total_elapsed_time / qs.execution_count AS avg_elapsed_us,\n  SUBSTRING(qt.text, (qs.statement_start_offset/2)+1,\n            ((CASE qs.statement_end_offset WHEN -1 THEN DATALENGTH(qt.text)\n              ELSE qs.statement_end_offset END - qs.statement_start_offset)/2)+1) AS query_text\nFROM sys.dm_exec_query_stats qs\nCROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt\nORDER BY total_cpu_us DESC;"
+                },
+                {
+                  "label": "Top 10 queries por tempo de execução médio",
+                  "command": "SELECT TOP 10\n  qs.total_elapsed_time / qs.execution_count AS avg_elapsed_us,\n  qs.execution_count,\n  qs.total_worker_time / qs.execution_count  AS avg_cpu_us,\n  SUBSTRING(qt.text, (qs.statement_start_offset/2)+1,\n            ((CASE qs.statement_end_offset WHEN -1 THEN DATALENGTH(qt.text)\n              ELSE qs.statement_end_offset END - qs.statement_start_offset)/2)+1) AS query_text\nFROM sys.dm_exec_query_stats qs\nCROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt\nORDER BY avg_elapsed_us DESC;"
+                },
+                {
+                  "label": "Ver plano de execução de uma query em cache",
+                  "command": "SELECT qp.query_plan\nFROM sys.dm_exec_query_stats qs\nCROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp\nCROSS APPLY sys.dm_exec_sql_text(qs.sql_handle) qt\nWHERE qt.text LIKE '%<trecho_da_query>%';"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fragmentacao-indices-sqlserver",
+          "title": "Fragmentação e Rebuild de Índices",
+          "description": "Verifica o percentual de fragmentação dos índices e executa REBUILD ou REORGANIZE conforme o nível encontrado.",
+          "tags": [
+            "índice",
+            "fragmentação",
+            "rebuild",
+            "reorganize",
+            "performance"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "Fragmentação > 30%: use REBUILD. Entre 5% e 30%: use REORGANIZE. Abaixo de 5%: não precisa de intervenção."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Verificar fragmentação dos índices de uma database",
+                  "command": "USE [<NomeBanco>];\n\nSELECT\n  OBJECT_NAME(ips.object_id)  AS tabela,\n  i.name                       AS indice,\n  ips.index_type_desc,\n  ROUND(ips.avg_fragmentation_in_percent, 2) AS fragmentacao_pct,\n  ips.page_count               AS paginas\nFROM sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, 'LIMITED') ips\nJOIN sys.indexes i ON ips.object_id = i.object_id AND ips.index_id = i.index_id\nWHERE ips.avg_fragmentation_in_percent > 5\n  AND ips.page_count > 100\nORDER BY fragmentacao_pct DESC;"
+                },
+                {
+                  "label": "Rebuild de um índice específico (offline, recria completamente)",
+                  "command": "ALTER INDEX [<NomeIndice>] ON [<Tabela>] REBUILD WITH (ONLINE = ON);"
+                },
+                {
+                  "label": "Reorganize de um índice (online, menos recursos)",
+                  "command": "ALTER INDEX [<NomeIndice>] ON [<Tabela>] REORGANIZE;"
+                },
+                {
+                  "label": "Rebuild de todos os índices de uma tabela",
+                  "command": "ALTER INDEX ALL ON [<Tabela>] REBUILD WITH (ONLINE = ON);"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "`ONLINE = ON` permite manter a tabela acessível durante o rebuild, mas requer SQL Server Enterprise ou Developer Edition."
+            }
+          ]
+        },
+        {
+          "id": "jobs-sql-agent",
+          "title": "Verificar Jobs do SQL Agent",
+          "description": "Lista todos os jobs do SQL Agent com status da última execução e identifica jobs que falharam recentemente.",
+          "tags": [
+            "sql agent",
+            "job",
+            "agendamento",
+            "schedule",
+            "histórico"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Listar todos os jobs com status da última execução",
+                  "command": "SELECT\n  j.name                     AS job_name,\n  j.enabled,\n  CASE jh.run_status\n    WHEN 0 THEN 'Falhou'\n    WHEN 1 THEN 'Sucesso'\n    WHEN 2 THEN 'Retry'\n    WHEN 3 THEN 'Cancelado'\n    WHEN 4 THEN 'Em execução'\n  END                        AS ultimo_status,\n  msdb.dbo.agent_datetime(jh.run_date, jh.run_time) AS ultima_execucao,\n  jh.message\nFROM msdb.dbo.sysjobs j\nLEFT JOIN msdb.dbo.sysjobhistory jh\n  ON j.job_id = jh.job_id AND jh.step_id = 0\nWHERE jh.instance_id = (\n  SELECT MAX(instance_id) FROM msdb.dbo.sysjobhistory\n  WHERE job_id = j.job_id AND step_id = 0\n) OR jh.instance_id IS NULL\nORDER BY ultima_execucao DESC;"
+                },
+                {
+                  "label": "Jobs que falharam nas últimas 24 horas",
+                  "command": "SELECT\n  j.name AS job_name,\n  msdb.dbo.agent_datetime(jh.run_date, jh.run_time) AS data_falha,\n  jh.step_name,\n  jh.message\nFROM msdb.dbo.sysjobhistory jh\nJOIN msdb.dbo.sysjobs j ON jh.job_id = j.job_id\nWHERE jh.run_status = 0\n  AND msdb.dbo.agent_datetime(jh.run_date, jh.run_time) >= DATEADD(HOUR, -24, GETDATE())\nORDER BY data_falha DESC;"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `EXEC msdb.dbo.sp_start_job N'<NomeJob>'` para disparar um job manualmente via T-SQL."
+            }
+          ]
         }
       ]
     },
@@ -536,6 +943,167 @@ const CONTENT = {
                   "command": "SELECT\n  schemaname,\n  relname AS tabela,\n  n_dead_tup AS dead_tuples,\n  n_live_tup AS live_tuples,\n  last_autovacuum\nFROM pg_stat_user_tables\nORDER BY n_dead_tup DESC\nLIMIT 20;"
                 }
               ]
+            }
+          ]
+        },
+        {
+          "id": "backup-restore-postgres",
+          "title": "Backup e Restore com pg_dump",
+          "description": "Realiza backup e restore de databases PostgreSQL usando pg_dump, pg_restore e pg_dumpall.",
+          "tags": [
+            "backup",
+            "restore",
+            "pg_dump",
+            "pg_restore",
+            "pg_dumpall"
+          ],
+          "sections": [
+            {
+              "type": "warning",
+              "text": "O pg_dump faz backup de uma database por vez. Para backup completo do cluster (todos os bancos + roles + configurações) use pg_dumpall."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Backup de uma database (formato custom — recomendado)",
+                  "command": "pg_dump -U postgres -Fc -f /backup/<banco>.dump <banco>"
+                },
+                {
+                  "label": "Backup em formato SQL puro (legível, mas maior)",
+                  "command": "pg_dump -U postgres -f /backup/<banco>.sql <banco>"
+                },
+                {
+                  "label": "Backup de um schema específico",
+                  "command": "pg_dump -U postgres -Fc -n <schema> -f /backup/<schema>.dump <banco>"
+                },
+                {
+                  "label": "Restore a partir do formato custom",
+                  "command": "pg_restore -U postgres -d <banco_destino> -v /backup/<banco>.dump"
+                },
+                {
+                  "label": "Backup completo do cluster (todos os bancos + roles + configs)",
+                  "command": "pg_dumpall -U postgres -f /backup/cluster_full.sql"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `-j 4` no pg_restore para restaurar em paralelo e acelerar o processo em databases grandes."
+            }
+          ]
+        },
+        {
+          "id": "roles-usuarios-postgres",
+          "title": "Gerenciar Roles e Usuários",
+          "description": "Cria usuários e roles no PostgreSQL, concede permissões em databases, schemas e tabelas.",
+          "tags": [
+            "role",
+            "usuário",
+            "permissão",
+            "grant",
+            "create user",
+            "create role"
+          ],
+          "sections": [
+            {
+              "type": "info",
+              "text": "No PostgreSQL, usuários e roles são a mesma coisa — a diferença é que usuários têm LOGIN por padrão."
+            },
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Criar usuário com senha",
+                  "command": "CREATE USER <usuario> WITH PASSWORD '<senha>' CONNECTION LIMIT 10;"
+                },
+                {
+                  "label": "Conceder acesso a uma database",
+                  "command": "GRANT CONNECT ON DATABASE <banco> TO <usuario>;\nGRANT USAGE ON SCHEMA public TO <usuario>;"
+                },
+                {
+                  "label": "Conceder permissões em tabelas",
+                  "command": "-- Tabelas existentes\nGRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO <usuario>;\n\n-- Tabelas criadas no futuro\nALTER DEFAULT PRIVILEGES IN SCHEMA public\n  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO <usuario>;"
+                },
+                {
+                  "label": "Ver roles e permissões no banco",
+                  "command": "-- Roles existentes\nSELECT rolname, rolsuper, rolcreatedb, rolcanlogin FROM pg_roles ORDER BY rolname;\n\n-- Permissões de um usuário nas tabelas\nSELECT table_name, privilege_type\nFROM information_schema.role_table_grants\nWHERE grantee = '<usuario>'\nORDER BY table_name;"
+                },
+                {
+                  "label": "Remover usuário",
+                  "command": "-- Revogar permissões primeiro\nREVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM <usuario>;\nDROP USER <usuario>;"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tamanho-databases-postgres",
+          "title": "Tamanho de Databases e Tabelas",
+          "description": "Consulta o tamanho de databases, tabelas e índices no PostgreSQL usando funções nativas do sistema.",
+          "tags": [
+            "tamanho",
+            "espaço",
+            "disco",
+            "pg_database_size",
+            "pg_total_relation_size"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Tamanho de todas as databases do cluster",
+                  "command": "SELECT datname AS database,\n       pg_size_pretty(pg_database_size(datname)) AS tamanho\nFROM pg_database\nORDER BY pg_database_size(datname) DESC;"
+                },
+                {
+                  "label": "Top 20 maiores tabelas (dados + índices)",
+                  "command": "SELECT\n  schemaname || '.' || tablename AS tabela,\n  pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS total,\n  pg_size_pretty(pg_relation_size(schemaname||'.'||tablename))       AS dados,\n  pg_size_pretty(pg_indexes_size(schemaname||'.'||tablename))        AS indices\nFROM pg_tables\nWHERE schemaname NOT IN ('pg_catalog', 'information_schema')\nORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC\nLIMIT 20;"
+                },
+                {
+                  "label": "Tamanho de um schema específico",
+                  "command": "SELECT pg_size_pretty(\n  SUM(pg_total_relation_size(schemaname||'.'||tablename))\n) AS total_schema\nFROM pg_tables\nWHERE schemaname = '<schema>';"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "conexoes-ativas-postgres",
+          "title": "Conexões Ativas",
+          "description": "Monitora conexões ativas e ociosas por database e identifica queries em execução há muito tempo no PostgreSQL.",
+          "tags": [
+            "conexão",
+            "sessão",
+            "pg_stat_activity",
+            "monitoramento",
+            "idle"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Ver todas as conexões ativas por database",
+                  "command": "SELECT datname AS database,\n       COUNT(*) AS conexoes,\n       COUNT(*) FILTER (WHERE state = 'active')  AS ativas,\n       COUNT(*) FILTER (WHERE state = 'idle')    AS ociosas\nFROM pg_stat_activity\nWHERE pid <> pg_backend_pid()\nGROUP BY datname\nORDER BY conexoes DESC;"
+                },
+                {
+                  "label": "Detalhe das conexões em execução",
+                  "command": "SELECT pid, usename, application_name, client_addr, state,\n       NOW() - query_start AS tempo_execucao,\n       LEFT(query, 80) AS query\nFROM pg_stat_activity\nWHERE state = 'active'\n  AND pid <> pg_backend_pid()\nORDER BY tempo_execucao DESC NULLS LAST;"
+                },
+                {
+                  "label": "Queries rodando há mais de 5 minutos",
+                  "command": "SELECT pid, usename, state,\n       NOW() - query_start AS tempo_execucao,\n       query\nFROM pg_stat_activity\nWHERE state = 'active'\n  AND NOW() - query_start > INTERVAL '5 minutes'\n  AND pid <> pg_backend_pid()\nORDER BY tempo_execucao DESC;"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `SELECT pg_terminate_backend(pid)` para encerrar uma conexão específica pelo PID listado acima."
             }
           ]
         }
@@ -699,6 +1267,86 @@ const CONTENT = {
                   "command": "REVOKE ALL PRIVILEGES ON nome_banco.* FROM 'nome_usuario'@'%';"
                 }
               ]
+            }
+          ]
+        },
+        {
+          "id": "conexoes-processlist-mysql",
+          "title": "Conexões e Processlist",
+          "description": "Monitora conexões ativas, identifica queries lentas e verifica o limite de conexões do MySQL.",
+          "tags": [
+            "sessão",
+            "processlist",
+            "conexão",
+            "monitoramento",
+            "threads"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Ver todas as conexões ativas com detalhes",
+                  "command": "SELECT id, user, host, db, command, time, state,\n       LEFT(info, 80) AS query\nFROM information_schema.processlist\nWHERE command <> 'Sleep'\nORDER BY time DESC;"
+                },
+                {
+                  "label": "Contar conexões por usuário",
+                  "command": "SELECT user, host, COUNT(*) AS total_conexoes,\n       COUNT(CASE WHEN command = 'Sleep' THEN 1 END) AS ociosas,\n       COUNT(CASE WHEN command <> 'Sleep' THEN 1 END) AS ativas\nFROM information_schema.processlist\nGROUP BY user, host\nORDER BY total_conexoes DESC;"
+                },
+                {
+                  "label": "Queries rodando há mais de 30 segundos",
+                  "command": "SELECT id, user, host, db, time, state, info AS query\nFROM information_schema.processlist\nWHERE command <> 'Sleep'\n  AND time > 30\nORDER BY time DESC;"
+                },
+                {
+                  "label": "Verificar limite máximo de conexões e uso atual",
+                  "command": "SHOW VARIABLES LIKE 'max_connections';\nSHOW STATUS LIKE 'Threads_connected';\nSHOW STATUS LIKE 'Max_used_connections';"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "Use `KILL <id>` para encerrar uma conexão ou query específica pelo ID listado no processlist."
+            }
+          ]
+        },
+        {
+          "id": "status-servidor-mysql",
+          "title": "Verificar Status e Variáveis do Servidor",
+          "description": "Consulta métricas de uptime, configurações de memória, slow queries e estatísticas do InnoDB no MySQL.",
+          "tags": [
+            "status",
+            "monitoramento",
+            "show status",
+            "variables",
+            "uptime"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Uptime e estatísticas gerais do servidor",
+                  "command": "SHOW STATUS LIKE 'Uptime';\nSHOW STATUS LIKE 'Questions';\nSHOW STATUS LIKE 'Queries';\nSHOW STATUS LIKE 'Slow_queries';"
+                },
+                {
+                  "label": "Principais variáveis de configuração",
+                  "command": "SHOW VARIABLES LIKE 'innodb_buffer_pool_size';\nSHOW VARIABLES LIKE 'max_connections';\nSHOW VARIABLES LIKE 'query_cache_size';\nSHOW VARIABLES LIKE 'slow_query_log';\nSHOW VARIABLES LIKE 'long_query_time';"
+                },
+                {
+                  "label": "Estatísticas do InnoDB (buffer pool, I/O, locks)",
+                  "command": "SHOW ENGINE INNODB STATUS\\G"
+                },
+                {
+                  "label": "Habilitar slow query log em tempo real (sem restart)",
+                  "command": "SET GLOBAL slow_query_log = 'ON';\nSET GLOBAL long_query_time = 2;  -- queries acima de 2 segundos\nSHOW VARIABLES LIKE 'slow_query_log_file';  -- caminho do arquivo"
+                }
+              ]
+            },
+            {
+              "type": "tip",
+              "text": "O `SHOW ENGINE INNODB STATUS\\G` mostra o estado atual das transações, locks e buffer pool — ótimo para diagnosticar lentidão repentina."
             }
           ]
         }
