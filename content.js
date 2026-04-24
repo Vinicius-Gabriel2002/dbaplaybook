@@ -121,26 +121,22 @@ const CONTENT = {
           "description": "Identifica sessões bloqueando outras e encerra o lock quando necessário.",
           "sections": [
             {
+              "type": "warning",
+              "text": "Matar uma sessão faz rollback automático das transações pendentes. Confirme com o time de negócio antes."
+            },
+            {
               "type": "steps",
-              "title": "Identificar locks",
+              "title": "Passo a passo",
               "items": [
                 {
                   "label": "Liste sessões com lock",
-                  "command": "SELECT\n  l.sid,\n  l.serial#,\n  l.username,\n  l.osuser,\n  l.machine,\n  l.status,\n  o.object_name,\n  l.lockwait\nFROM v$session l\nJOIN v$locked_object lo ON lo.session_id = l.sid\nJOIN dba_objects o ON o.object_id = lo.object_id\nORDER BY l.sid;"
-                },
-                {
-                  "label": "Veja quem está bloqueando quem",
-                  "command": "SELECT\n  w.sid AS sessao_esperando,\n  h.sid AS sessao_bloqueando,\n  w.username,\n  w.osuser,\n  w.machine\nFROM v$session w\nJOIN v$session h ON h.sid = (\n  SELECT blocking_session FROM v$session WHERE sid = w.sid\n)\nWHERE w.blocking_session IS NOT NULL;"
+                  "command": "col \"Sessao\" for a55\nset lines 150\ncol username for a30\n SELECT DECODE(l.request, 0, 'Holder: ', 'Waiter: ') ||' alter system kill session '''||l.sid ||','|| s.serial#||',@'||s.inst_id||''';' \"Sessao\",\n        s.serial#,\n        substr(s.username,1,30) Username,\n        l.id1,        l.id2,        l.lmode,        l.request,        l.type\n   FROM GV$LOCK L, GV$SESSION S\n  WHERE (l.id1, l.id2, l.type) IN\n        (SELECT l2.id1, l2.id2, l2.type FROM GV$LOCK l2 WHERE l2.request > 0)\n    AND s.sid = l.sid\n  ORDER BY l.id1, l.request;"
                 },
                 {
                   "label": "Encerre a sessão bloqueadora (substitua SID e SERIAL#)",
                   "command": "ALTER SYSTEM KILL SESSION 'SID,SERIAL#' IMMEDIATE;"
                 }
               ]
-            },
-            {
-              "type": "warning",
-              "text": "Matar uma sessão faz rollback automático das transações pendentes. Confirme com o time de negócio antes."
             }
           ]
         },
