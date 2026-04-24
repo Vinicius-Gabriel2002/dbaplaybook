@@ -279,6 +279,26 @@ const CONTENT = {
               ]
             }
           ]
+        },
+        {
+          "id": "custom-1777036198897",
+          "title": "Índices não utilizados",
+          "description": "Fazer rebuild de índices marcados como UNUSABLE",
+          "tags": [
+            "indices"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Executar o comando abaixo",
+                  "command": "SELECT 'alter index '||owner||'.'||index_name||' rebuild tablespace '||tablespace_name ||';' sql_to_rebuild_index\nFROM   dba_indexes\nWHERE  status = 'UNUSABLE';"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
