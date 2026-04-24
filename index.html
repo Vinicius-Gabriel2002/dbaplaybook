@@ -1,18 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DBA Playbook</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
   <!-- SIDEBAR -->
@@ -20,24 +16,21 @@
     <div class="sidebar-header">
       <div class="logo" onclick="showWelcomeScreen()" role="button" tabindex="0" style="cursor:pointer">
         <svg class="logo-svg" width="26" height="26" viewBox="0 0 26 26" fill="none">
-          <ellipse cx="13" cy="6.5" rx="8" ry="3" />
-          <path d="M5 6.5v13M21 6.5v13" stroke-linecap="round" />
-          <ellipse cx="13" cy="13" rx="8" ry="3" />
-          <ellipse cx="13" cy="19.5" rx="8" ry="3" />
+          <ellipse cx="13" cy="6.5" rx="8" ry="3"/>
+          <path d="M5 6.5v13M21 6.5v13" stroke-linecap="round"/>
+          <ellipse cx="13" cy="13" rx="8" ry="3"/>
+          <ellipse cx="13" cy="19.5" rx="8" ry="3"/>
         </svg>
         <span class="logo-text">DBA<strong>Playbook</strong></span>
       </div>
       <div class="sidebar-actions">
         <button class="theme-toggle" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">
           <svg class="icon-sun" width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="5" stroke-width="2" />
-            <path
-              d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-              stroke-width="2" stroke-linecap="round" />
+            <circle cx="12" cy="12" r="5" stroke-width="2"/>
+            <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-width="2" stroke-linecap="round"/>
           </svg>
           <svg class="icon-moon" width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round" />
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
         <button class="sidebar-toggle" id="sidebarToggle" aria-label="Fechar menu">&#10005;</button>
@@ -51,6 +44,16 @@
     </div>
 
     <nav class="nav" id="nav"></nav>
+
+    <div class="sidebar-bottom">
+      <button class="admin-lock-btn" id="adminLockBtn" title="Acesso admin">
+        <svg id="lockIcon" width="15" height="15" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span id="adminLockLabel">Admin</span>
+      </button>
+    </div>
   </aside>
 
   <!-- OVERLAY (mobile) -->
@@ -64,15 +67,14 @@
     </div>
 
     <div class="content-area" id="contentArea">
-      <!-- Home / Welcome -->
       <div class="welcome" id="welcome">
         <div class="welcome-inner">
           <div class="welcome-logo">
             <svg width="52" height="52" viewBox="0 0 26 26" fill="none" class="logo-svg-lg">
-              <ellipse cx="13" cy="6.5" rx="8" ry="3" />
-              <path d="M5 6.5v13M21 6.5v13" stroke-linecap="round" />
-              <ellipse cx="13" cy="13" rx="8" ry="3" />
-              <ellipse cx="13" cy="19.5" rx="8" ry="3" />
+              <ellipse cx="13" cy="6.5" rx="8" ry="3"/>
+              <path d="M5 6.5v13M21 6.5v13" stroke-linecap="round"/>
+              <ellipse cx="13" cy="13" rx="8" ry="3"/>
+              <ellipse cx="13" cy="19.5" rx="8" ry="3"/>
             </svg>
           </div>
           <h1>DBA<strong>Playbook</strong></h1>
@@ -91,45 +93,33 @@
               </div>
               <div class="author-links">
                 <a href="mailto:vinicius.gabriel@migrati.com.br" class="author-link">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2" />
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" stroke="currentColor" stroke-width="2" />
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" stroke="currentColor" stroke-width="2"/></svg>
                   vinicius.gabriel@migrati.com.br
                 </a>
-                <a href="https://www.linkedin.com/in/vinicius-gabriel-lana-abb98b18a/" target="_blank" rel="noopener"
-                  class="author-link">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" stroke="currentColor"
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    <rect x="2" y="9" width="4" height="12" stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round" />
-                    <circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="2" />
-                  </svg>
+                <a href="https://www.linkedin.com/in/vinicius-gabriel-lana-abb98b18a/" target="_blank" rel="noopener" class="author-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="9" width="4" height="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="4" cy="4" r="2" stroke="currentColor" stroke-width="2"/></svg>
                   LinkedIn
                 </a>
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
-      <!-- Topic View -->
       <article class="topic-view hidden" id="topicView"></article>
-
-      <!-- Search Results -->
       <div class="search-results hidden" id="searchResults"></div>
     </div>
-
   </main>
 
-  <!-- MODAL EDITOR -->
+  <!-- TOAST -->
+  <div class="toast hidden" id="toast"></div>
+
+  <!-- MODAL: EDITOR DE TÓPICO -->
   <div class="modal-overlay hidden" id="modalOverlay">
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="modalTitle">Novo Tópico</h2>
-        <button class="modal-close-btn" id="modalCloseBtn" aria-label="Fechar">&#10005;</button>
+        <button class="modal-close-btn" id="modalCloseBtn">&#10005;</button>
       </div>
       <div class="modal-body">
         <div class="form-group" id="formCatGroup">
@@ -150,7 +140,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Nota de introdução <span class="form-hint">(opcional)</span></label>
-          <select class="form-select form-select-sm" id="formNoteType">
+          <select class="form-select" id="formNoteType" style="max-width:220px">
             <option value="">Sem nota</option>
             <option value="warning">⚠️ Atenção</option>
             <option value="info">ℹ️ Informação</option>
@@ -167,7 +157,59 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" id="modalCancelBtn">Cancelar</button>
-        <button class="btn-primary" id="modalSaveBtn">Salvar Tópico</button>
+        <button class="btn-primary" id="modalSaveBtn">Salvar e Publicar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGIN ADMIN -->
+  <div class="modal-overlay hidden" id="loginModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:8px"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Acesso Admin
+        </h2>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Senha</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="Digite a senha" />
+          <div class="form-error" id="loginError"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="loginCancelBtn">Cancelar</button>
+        <button class="btn-primary" id="loginSubmitBtn">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TOKEN GITHUB -->
+  <div class="modal-overlay hidden" id="tokenModal">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:8px"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          GitHub Token
+        </h2>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Personal Access Token</label>
+          <input type="password" class="form-input" id="tokenInput" placeholder="ghp_xxxxxxxxxxxx" />
+          <div class="token-instructions">
+            <strong>Como gerar o token:</strong><br>
+            1. github.com → foto de perfil → <em>Settings</em><br>
+            2. <em>Developer settings</em> → <em>Personal access tokens</em> → <em>Tokens (classic)</em><br>
+            3. <em>Generate new token (classic)</em> → marque <strong>repo</strong> → Generate<br>
+            4. Copie e cole aqui
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="tokenCancelBtn">Depois</button>
+        <button class="btn-primary" id="tokenSaveBtn">Salvar Token</button>
       </div>
     </div>
   </div>
@@ -175,5 +217,4 @@
   <script src="content.js"></script>
   <script src="app.js"></script>
 </body>
-
 </html>

@@ -1,4 +1,11 @@
 (() => {
+  // ── CONFIG ─────────────────────────────────────────────────────────────
+  const ADMIN_PASSWORD = 'Migra#0996';
+  const GITHUB_USER    = 'Vinicius-Gabriel2002';
+  const GITHUB_REPO    = 'dbaplaybook';
+  const GITHUB_FILE    = 'content.js';
+  // ───────────────────────────────────────────────────────────────────────
+
   const $ = id => document.getElementById(id);
 
   const sidebar       = $('sidebar');
@@ -17,10 +24,7 @@
 
   let activeTopicId = null;
   let activeCatId   = null;
-
-  // ── ADMIN MODE ──
-  const isAdmin = new URLSearchParams(location.search).has('admin');
-  if (isAdmin) document.body.classList.add('admin-mode');
+  let isAdmin       = false;
 
   // ── THEME ──
   const savedTheme = localStorage.getItem('dba-theme') || 'dark';
@@ -35,7 +39,71 @@
   backBtn.addEventListener('click', () => showWelcomeScreen());
   function setBackBtn(visible) { backBtn.classList.toggle('hidden', !visible); }
 
-  // ── USER DATA ──
+  // ── ADMIN SESSION ──
+  function checkAdminSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem('dba-admin-session') || 'null');
+      return s && s.expires > Date.now();
+    } catch { return false; }
+  }
+  function saveAdminSession() {
+    localStorage.setItem('dba-admin-session',
+      JSON.stringify({ expires: Date.now() + 24 * 60 * 60 * 1000 }));
+  }
+  function clearAdminSession() {
+    localStorage.removeItem('dba-admin-session');
+  }
+
+  // ── GITHUB TOKEN ──
+  function getGithubToken() { return localStorage.getItem('dba-github-token') || ''; }
+  function saveGithubToken(t) { localStorage.setItem('dba-github-token', t.trim()); }
+
+  // ── GITHUB COMMIT ──
+  async function commitToGithub() {
+    const token = getGithubToken();
+    if (!token) { openTokenModal(); throw new Error('Configure o token do GitHub primeiro.'); }
+
+    const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+    const headers = {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json'
+    };
+
+    const getRes = await fetch(url, { headers });
+    if (!getRes.ok) {
+      if (getRes.status === 401) { saveGithubToken(''); throw new Error('Token inválido. Configure novamente.'); }
+      throw new Error(`Erro ao conectar no GitHub (${getRes.status}).`);
+    }
+    const { sha } = await getRes.json();
+
+    const newContent = `const CONTENT = ${JSON.stringify(CONTENT, null, 2)};\n`;
+    const encoded    = btoa(unescape(encodeURIComponent(newContent)));
+
+    const putRes = await fetch(url, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        message: 'chore: atualizar conteúdo via DBA Playbook editor',
+        content: encoded,
+        sha
+      })
+    });
+
+    if (!putRes.ok) throw new Error(`Erro ao publicar no GitHub (${putRes.status}).`);
+  }
+
+  // ── TOAST ──
+  function showToast(msg, type = 'success') {
+    const t = $('toast');
+    t.textContent = msg;
+    t.className = `toast toast-${type}`;
+    t.classList.remove('hidden');
+    clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.add('hidden'), 4000);
+  }
+
+  // ── USER DATA (localStorage) ──
   function getUserData() {
     try {
       return JSON.parse(localStorage.getItem('dba-user-data') ||
@@ -46,7 +114,7 @@
     localStorage.setItem('dba-user-data', JSON.stringify(data));
   }
 
-  // ── MERGE CONTENT (aplica edições e tópicos criados pelo usuário) ──
+  // ── MERGE CONTENT ──
   function mergeContent() {
     const { customTopics, editedTopics, deletedIds } = getUserData();
     CONTENT.categories.forEach(cat => {
@@ -101,11 +169,11 @@
     });
 
     if (isAdmin) {
-      const exportBtn = document.createElement('button');
-      exportBtn.className = 'nav-export-btn';
-      exportBtn.textContent = '⬇ Exportar content.js';
-      exportBtn.addEventListener('click', exportContentJS);
-      navEl.appendChild(exportBtn);
+      const cfgBtn = document.createElement('button');
+      cfgBtn.className = 'nav-export-btn';
+      cfgBtn.textContent = '⚙ Token GitHub';
+      cfgBtn.addEventListener('click', openTokenModal);
+      navEl.appendChild(cfgBtn);
     }
   }
 
@@ -150,12 +218,11 @@
 
     topicView.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const code = btn.closest('.code-block').querySelector('pre').textContent;
-        navigator.clipboard.writeText(code).then(() => {
-          btn.textContent = '✓ Copiado';
-          btn.classList.add('copied');
-          setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1800);
-        });
+        navigator.clipboard.writeText(btn.closest('.code-block').querySelector('pre').textContent)
+          .then(() => {
+            btn.textContent = '✓ Copiado'; btn.classList.add('copied');
+            setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 1800);
+          });
       });
     });
 
@@ -212,7 +279,6 @@
   function callout(icon, text, type) {
     return `<div class="callout ${type}"><span class="callout-icon">${icon}</span><span>${text}</span></div>`;
   }
-
   function codeBlock(code) {
     const esc = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return `<div class="code-block"><pre>${esc}</pre><button class="copy-btn">Copiar</button></div>`;
@@ -231,33 +297,29 @@
   };
 
   // ── DELETE ──
-  function deleteTopic(catId, topicId) {
+  async function deleteTopic(catId, topicId) {
     if (!confirm('Tem certeza que deseja excluir este tópico?')) return;
+
     const data = getUserData();
-    const customIdx = data.customTopics.findIndex(c => c.catId === catId && c.topic.id === topicId);
-    if (customIdx >= 0) {
-      data.customTopics.splice(customIdx, 1);
-    } else {
-      if (!data.deletedIds.includes(topicId)) data.deletedIds.push(topicId);
-    }
+    const customIdx = data.customTopics.findIndex(c => c.topic.id === topicId);
+    if (customIdx >= 0) data.customTopics.splice(customIdx, 1);
+    else if (!data.deletedIds.includes(topicId)) data.deletedIds.push(topicId);
     delete data.editedTopics[topicId];
     saveUserData(data);
+
     const cat = CONTENT.categories.find(c => c.id === catId);
     if (cat) cat.topics = cat.topics.filter(t => t.id !== topicId);
     buildNav(); buildWelcome(); showWelcomeScreen();
+
+    try {
+      await commitToGithub();
+      showToast('Tópico excluído e publicado!');
+    } catch (err) {
+      showToast('Excluído localmente. Erro ao publicar: ' + err.message, 'error');
+    }
   }
 
-  // ── EXPORT ──
-  function exportContentJS() {
-    const js = `const CONTENT = ${JSON.stringify(CONTENT, null, 2)};\n`;
-    const a = Object.assign(document.createElement('a'), {
-      href: URL.createObjectURL(new Blob([js], { type: 'text/javascript' })),
-      download: 'content.js'
-    });
-    a.click(); URL.revokeObjectURL(a.href);
-  }
-
-  // ── MODAL ──
+  // ── MODAL: EDITOR ──
   let editingCatId   = null;
   let editingTopicId = null;
 
@@ -265,13 +327,13 @@
     editingCatId   = catId;
     editingTopicId = topicId;
 
-    const formCat  = $('formCat');
-    formCat.innerHTML = CONTENT.categories
+    $('formCat').innerHTML = CONTENT.categories
       .map(c => `<option value="${c.id}"${c.id === catId ? ' selected' : ''}>${c.name}</option>`)
       .join('');
-
     $('formCatGroup').classList.toggle('hidden', !!topicId);
     $('modalTitle').textContent = topicId ? 'Editar Tópico' : 'Novo Tópico';
+    $('modalSaveBtn').textContent = 'Salvar e Publicar';
+    $('modalSaveBtn').disabled = false;
 
     if (topicId) {
       const cat   = CONTENT.categories.find(c => c.id === catId);
@@ -283,11 +345,10 @@
       const intro = (topic.sections || []).find(s => ['warning','info','tip','result'].includes(s.type));
       $('formNoteType').value = intro?.type || '';
       $('formNoteText').value = intro?.text || '';
-      const stepsSection = (topic.sections || []).find(s => s.type === 'steps');
-      buildStepsUI(stepsSection?.items || []);
+      buildStepsUI((topic.sections || []).find(s => s.type === 'steps')?.items || []);
     } else {
-      $('formTitle').value = ''; $('formDesc').value = '';
-      $('formTags').value  = ''; $('formNoteType').value = ''; $('formNoteText').value = '';
+      ['formTitle','formDesc','formTags'].forEach(id => $(id).value = '');
+      $('formNoteType').value = ''; $('formNoteText').value = '';
       buildStepsUI([]);
     }
 
@@ -304,14 +365,14 @@
 
   function toggleNoteText() {
     const show = $('formNoteType').value !== '';
-    $('formNoteText').style.display    = show ? 'block' : 'none';
-    $('formNoteText').style.marginTop  = show ? '8px'   : '0';
+    $('formNoteText').style.display   = show ? 'block' : 'none';
+    $('formNoteText').style.marginTop = show ? '8px' : '0';
   }
 
   function buildStepsUI(items) {
     $('stepsContainer').innerHTML = '';
-    if (items.length === 0) addStepRow();
-    else items.forEach(item => addStepRow(item.label, item.command || ''));
+    if (!items.length) addStepRow();
+    else items.forEach(i => addStepRow(i.label, i.command || ''));
   }
 
   function addStepRow(label = '', command = '') {
@@ -319,18 +380,6 @@
     const num = container.querySelectorAll('.step-form-row').length + 1;
     const row = document.createElement('div');
     row.className = 'step-form-row';
-
-    const labelInput = document.createElement('input');
-    labelInput.type = 'text';
-    labelInput.className = 'form-input step-form-label';
-    labelInput.placeholder = 'Descrição do passo';
-    labelInput.value = label;
-
-    const cmdInput = document.createElement('textarea');
-    cmdInput.className = 'form-textarea step-form-command';
-    cmdInput.placeholder = 'Comando SQL ou shell (opcional)';
-    cmdInput.rows = 3;
-    cmdInput.value = command;
 
     const numEl = document.createElement('span');
     numEl.className = 'step-form-num';
@@ -349,58 +398,144 @@
     hdr.className = 'step-form-header';
     hdr.appendChild(numEl); hdr.appendChild(removeBtn);
 
-    row.appendChild(hdr); row.appendChild(labelInput); row.appendChild(cmdInput);
+    const labelEl = document.createElement('input');
+    labelEl.type = 'text'; labelEl.className = 'form-input step-form-label';
+    labelEl.placeholder = 'Descrição do passo'; labelEl.value = label;
+
+    const cmdEl = document.createElement('textarea');
+    cmdEl.className = 'form-textarea step-form-command';
+    cmdEl.placeholder = 'Comando SQL ou shell (opcional)';
+    cmdEl.rows = 3; cmdEl.value = command;
+
+    row.appendChild(hdr); row.appendChild(labelEl); row.appendChild(cmdEl);
     container.appendChild(row);
   }
 
-  function saveModalData() {
-    const title   = $('formTitle').value.trim();
-    const desc    = $('formDesc').value.trim();
-    const tagsRaw = $('formTags').value.trim();
-    const noteType= $('formNoteType').value;
-    const noteText= $('formNoteText').value.trim();
-    const catId   = editingTopicId ? editingCatId : $('formCat').value;
+  async function saveModalData() {
+    const title    = $('formTitle').value.trim();
+    const desc     = $('formDesc').value.trim();
+    const tagsRaw  = $('formTags').value.trim();
+    const noteType = $('formNoteType').value;
+    const noteText = $('formNoteText').value.trim();
+    const catId    = editingTopicId ? editingCatId : $('formCat').value;
 
-    if (!title) { $('formTitle').style.borderColor = 'var(--red)'; $('formTitle').focus(); return; }
+    if (!title) {
+      $('formTitle').style.borderColor = 'var(--red)';
+      $('formTitle').focus(); return;
+    }
     $('formTitle').style.borderColor = '';
 
-    const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-
+    const tags      = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
     const stepItems = [...$('stepsContainer').querySelectorAll('.step-form-row')]
       .map(row => ({
         label:   row.querySelector('.step-form-label').value.trim(),
         command: row.querySelector('.step-form-command').value.trim()
-      }))
-      .filter(s => s.label);
+      })).filter(s => s.label);
 
     const sections = [];
     if (noteType && noteText) sections.push({ type: noteType, text: noteText });
     if (stepItems.length)     sections.push({ type: 'steps', title: 'Passo a passo', items: stepItems });
 
     const data = getUserData();
+    let resolvedTopicId = editingTopicId;
 
     if (editingTopicId) {
       const cat   = CONTENT.categories.find(c => c.id === catId);
       const topic = cat?.topics.find(t => t.id === editingTopicId);
       if (!topic) return;
       const updated = { ...topic, title, description: desc, tags, sections };
-      const customIdx = data.customTopics.findIndex(c => c.topic.id === editingTopicId);
-      if (customIdx >= 0) data.customTopics[customIdx].topic = updated;
+      const ci = data.customTopics.findIndex(c => c.topic.id === editingTopicId);
+      if (ci >= 0) data.customTopics[ci].topic = updated;
       else data.editedTopics[editingTopicId] = updated;
       if (cat) cat.topics = cat.topics.map(t => t.id === editingTopicId ? updated : t);
-      saveUserData(data);
-      closeModal(); buildNav(); buildWelcome();
-      showTopic(catId, editingTopicId);
     } else {
       const newId    = `custom-${Date.now()}`;
       const newTopic = { id: newId, title, description: desc, tags, sections };
       data.customTopics.push({ catId, topic: newTopic });
       const cat = CONTENT.categories.find(c => c.id === catId);
       if (cat) cat.topics.push(newTopic);
-      saveUserData(data);
-      closeModal(); buildNav(); buildWelcome();
-      showTopic(catId, newId);
+      resolvedTopicId = newId;
     }
+
+    saveUserData(data);
+
+    // Publish to GitHub
+    const btn = $('modalSaveBtn');
+    btn.disabled = true; btn.textContent = 'Publicando...';
+
+    try {
+      await commitToGithub();
+      closeModal(); buildNav(); buildWelcome();
+      showTopic(catId, resolvedTopicId);
+      showToast('Publicado! O site será atualizado em ~30 segundos.');
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Salvar e Publicar';
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ── MODAL: LOGIN ──
+  function openLoginModal() {
+    $('loginPassword').value = '';
+    $('loginError').textContent = '';
+    $('loginModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('loginPassword').focus(), 50);
+  }
+
+  function closeLoginModal() {
+    $('loginModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function attemptLogin() {
+    if ($('loginPassword').value === ADMIN_PASSWORD) {
+      saveAdminSession();
+      closeLoginModal();
+      enableAdminMode();
+      if (!getGithubToken()) openTokenModal();
+    } else {
+      $('loginError').textContent = 'Senha incorreta.';
+      $('loginPassword').value = '';
+      $('loginPassword').focus();
+    }
+  }
+
+  function enableAdminMode() {
+    isAdmin = true;
+    document.body.classList.add('admin-mode');
+    $('adminLockBtn').title = 'Sair do modo admin';
+    $('adminLockLabel').textContent = 'Sair';
+    $('lockIcon').innerHTML = `<rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+      <path d="M7 11V7a5 5 0 0 1 9.9-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`;
+    buildNav(); buildWelcome();
+    if (activeTopicId) showTopic(activeCatId, activeTopicId);
+  }
+
+  function logout() {
+    clearAdminSession();
+    location.reload();
+  }
+
+  // ── MODAL: TOKEN ──
+  function openTokenModal() {
+    $('tokenInput').value = getGithubToken();
+    $('tokenModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => $('tokenInput').focus(), 50);
+  }
+
+  function closeTokenModal() {
+    $('tokenModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  function saveToken() {
+    const t = $('tokenInput').value.trim();
+    if (!t) return;
+    saveGithubToken(t);
+    closeTokenModal();
+    showToast('Token GitHub salvo com sucesso!');
   }
 
   // ── SEARCH ──
@@ -452,7 +587,8 @@
     doSearch(''); searchInput.focus();
   });
 
-  // ── MODAL EVENTS ──
+  // ── WIRE UP EVENTS ──
+  // Topic editor modal
   $('modalCloseBtn').addEventListener('click', closeModal);
   $('modalCancelBtn').addEventListener('click', closeModal);
   $('modalSaveBtn').addEventListener('click', saveModalData);
@@ -460,7 +596,20 @@
   $('formNoteType').addEventListener('change', toggleNoteText);
   $('modalOverlay').addEventListener('click', e => { if (e.target === $('modalOverlay')) closeModal(); });
 
-  // ── MOBILE SIDEBAR ──
+  // Login modal
+  $('adminLockBtn').addEventListener('click', () => isAdmin ? logout() : openLoginModal());
+  $('loginSubmitBtn').addEventListener('click', attemptLogin);
+  $('loginCancelBtn').addEventListener('click', closeLoginModal);
+  $('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+  $('loginModal').addEventListener('click', e => { if (e.target === $('loginModal')) closeLoginModal(); });
+
+  // Token modal
+  $('tokenSaveBtn').addEventListener('click', saveToken);
+  $('tokenCancelBtn').addEventListener('click', closeTokenModal);
+  $('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveToken(); });
+  $('tokenModal').addEventListener('click', e => { if (e.target === $('tokenModal')) closeTokenModal(); });
+
+  // Mobile sidebar
   function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('open'); }
   function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('open'); }
   menuBtn.addEventListener('click', openSidebar);
@@ -469,6 +618,7 @@
 
   // ── INIT ──
   mergeContent();
+  if (checkAdminSession()) enableAdminMode();
   buildNav();
   buildWelcome();
 })();
