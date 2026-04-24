@@ -157,7 +157,7 @@ const CONTENT = {
           "sections": [
             {
               "type": "steps",
-              "title": "Queries úteis",
+              "title": "Passo a passo",
               "items": [
                 {
                   "label": "Espaço livre por tablespace",
@@ -166,6 +166,18 @@ const CONTENT = {
                 {
                   "label": "Datafiles com autoextend",
                   "command": "SELECT\n  tablespace_name,\n  file_name,\n  ROUND(bytes/1024/1024) AS size_mb,\n  autoextensible,\n  ROUND(maxbytes/1024/1024) AS max_mb\nFROM dba_data_files\nORDER BY tablespace_name;"
+                },
+                {
+                  "label": "Listar todos os datafiles e tamanhos de uma tablespace",
+                  "command": "select FILE_NAME, sum(MAXBYTES/1024/1024) from dba_data_files where TABLESPACE_NAME='<TablespaceName>' group by FILE_NAME order by 1;"
+                },
+                {
+                  "label": "Alterar o Maxsize de um datafile",
+                  "command": "Alter database datafile '<Datafile>' autoextend on next 500m maxsize <maxsize>;"
+                },
+                {
+                  "label": "Adicionar datafile a tablespace (Com autoextend e maxsize)",
+                  "command": "alter tablespace <TablespaceName> add datafile '<dir/datafile>' size 200m autoextend on next 500m maxsize 30000m;"
                 }
               ]
             }
