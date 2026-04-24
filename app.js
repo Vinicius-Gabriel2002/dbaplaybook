@@ -281,6 +281,7 @@
 
     try {
       await commitToGithub();
+      saveUserData({ customTopics: [], editedTopics: {}, deletedIds: [] });
       showToast('Tópico excluído e publicado!');
     } catch (err) {
       showToast('Excluído localmente. Erro ao publicar: ' + err.message, 'error');
@@ -433,6 +434,7 @@
 
     try {
       await commitToGithub();
+      saveUserData({ customTopics: [], editedTopics: {}, deletedIds: [] });
       closeModal(); buildNav(); buildWelcome();
       showTopic(catId, resolvedTopicId);
       showToast('Publicado! O site será atualizado em ~30 segundos.');
