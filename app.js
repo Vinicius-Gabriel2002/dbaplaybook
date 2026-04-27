@@ -22,9 +22,10 @@
   const themeToggle   = $('themeToggle');
   const backBtn       = $('backBtn');
 
-  let activeTopicId = null;
-  let activeCatId   = null;
-  let isAdmin       = false;
+  let activeTopicId   = null;
+  let activeCatId     = null;
+  let inCategoryView  = false;
+  let isAdmin         = false;
 
   // ── THEME ──
   const savedTheme = localStorage.getItem('dba-theme') || 'dark';
@@ -36,7 +37,10 @@
   });
 
   // ── BACK BUTTON ──
-  backBtn.addEventListener('click', () => showWelcomeScreen());
+  backBtn.addEventListener('click', () => {
+    if (!inCategoryView && activeCatId) showCategory(activeCatId);
+    else showWelcomeScreen();
+  });
   function setBackBtn(visible) { backBtn.classList.toggle('hidden', !visible); }
 
   // ── ADMIN SESSION ──
@@ -116,7 +120,11 @@
         ${cat.name}
         <span class="nav-chevron">&#9660;</span>
       `;
-      header.addEventListener('click', () => catEl.classList.toggle('collapsed'));
+      header.addEventListener('click', () => {
+        const wasCollapsed = catEl.classList.contains('collapsed');
+        catEl.classList.toggle('collapsed');
+        if (wasCollapsed) showCategory(cat.id);
+      });
 
       const items = document.createElement('div');
       items.className = 'nav-items';
@@ -156,10 +164,41 @@
         <h3>${cat.name}</h3>
         <p>${cat.topics.length} tópico${cat.topics.length !== 1 ? 's' : ''}</p>
       `;
-      card.addEventListener('click', () => showTopic(cat.id, cat.topics[0].id));
+      card.addEventListener('click', () => showCategory(cat.id));
       welcomeCards.appendChild(card);
     });
   }
+
+  // ── SHOW CATEGORY ──
+  window.showCategory = function(catId) {
+    const cat = CONTENT.categories.find(c => c.id === catId);
+    if (!cat) return;
+    activeCatId = catId; activeTopicId = null; inCategoryView = true;
+    welcome.classList.add('hidden');
+    searchResults.classList.add('hidden');
+    topicView.classList.remove('hidden');
+    setBackBtn(true);
+    searchInput.value = ''; searchClear.classList.remove('visible');
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+    const cards = cat.topics.map(topic => `
+      <div class="topic-card" onclick="showTopic('${cat.id}','${topic.id}')">
+        <div class="topic-card-title">${topic.title}</div>
+        ${topic.description ? `<div class="topic-card-desc">${topic.description}</div>` : ''}
+        ${topic.tags?.length ? `<div class="topic-card-tags">${topic.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>` : ''}
+      </div>`).join('');
+
+    topicView.innerHTML = `
+      <div class="category-view">
+        <div class="category-view-header">
+          <span class="category-view-dot" style="background:${cat.color}"></span>
+          <h2>${cat.name}</h2>
+          <span class="category-view-count">${cat.topics.length} tópico${cat.topics.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="topics-grid">${cards}</div>
+      </div>`;
+    window.scrollTo(0, 0);
+  };
 
   // ── SHOW TOPIC ──
   function showTopic(catId, topicId) {
@@ -169,6 +208,7 @@
 
     activeTopicId = topicId;
     activeCatId   = catId;
+    inCategoryView = false;
     searchInput.value = '';
     searchClear.classList.remove('visible');
 
@@ -234,7 +274,7 @@
     return `
       <div class="topic-breadcrumb">
         <span onclick="showWelcomeScreen()" style="cursor:pointer">Início</span> ›
-        <span style="color:${cat.color}">${cat.name}</span> ›
+        <span onclick="showCategory('${cat.id}')" style="cursor:pointer;color:${cat.color}">${cat.name}</span> ›
         <span>${topic.title}</span>
       </div>
       ${adminBar}
@@ -291,7 +331,7 @@
 
   // ── WELCOME ──
   window.showWelcomeScreen = function() {
-    activeTopicId = null; activeCatId = null;
+    activeTopicId = null; activeCatId = null; inCategoryView = false;
     welcome.classList.remove('hidden');
     topicView.classList.add('hidden');
     searchResults.classList.add('hidden');
