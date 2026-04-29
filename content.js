@@ -1106,6 +1106,32 @@ const CONTENT = {
               "text": "Use `SELECT pg_terminate_backend(pid)` para encerrar uma conexão específica pelo PID listado acima."
             }
           ]
+        },
+        {
+          "id": "custom-1777467170370",
+          "title": "Max Connections",
+          "description": "Consultas para avaliar o máximo de conexões  no postgres",
+          "tags": [
+            "max_connections",
+            "connections",
+            "conexões"
+          ],
+          "sections": [
+            {
+              "type": "steps",
+              "title": "Passo a passo",
+              "items": [
+                {
+                  "label": "Conexões ativas e máximo de conexões",
+                  "command": "SELECT\n    current_connections,\n    max_connections,\n    ROUND((current_connections::numeric / max_connections) * 100, 2) AS utilization_pct\nFROM (\n    SELECT\n        (SELECT COUNT(*) FROM pg_stat_activity) AS current_connections,\n        (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') AS max_connections\n) t;"
+                },
+                {
+                  "label": "Conexões detalhadas",
+                  "command": "SELECT\n    total_connections,\n    active_connections,\n    max_connections,\n    ROUND((total_connections::numeric / max_connections) * 100, 2) AS total_utilization_pct,\n    ROUND((active_connections::numeric / max_connections) * 100, 2) AS active_utilization_pct\nFROM (\n    SELECT\n        (SELECT COUNT(*) FROM pg_stat_activity) AS total_connections,\n        (SELECT COUNT(*) FROM pg_stat_activity WHERE state = 'active') AS active_connections,\n        (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') AS max_connections\n) t;"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
