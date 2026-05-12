@@ -593,52 +593,108 @@
   }
 
   // ── SEARCH ──
+  function highlightMatch(text, query) {
+    const lower = text.toLowerCase();
+    const idx   = lower.indexOf(query);
+    if (idx === -1) return text;
+    return (
+      text.slice(0, idx) +
+      '<mark>' + text.slice(idx, idx + query.length) + '</mark>' +
+      text.slice(idx + query.length)
+    );
+  }
+
+  window.selectSearchResult = function(catId, topicId) {
+    $('searchDropdown').classList.add('hidden');
+    searchInput.value = '';
+    searchClear.classList.remove('visible');
+    showTopic(catId, topicId);
+    closeSidebar();
+  };
+
   function doSearch(query) {
     query = query.trim().toLowerCase();
+    const dropdown = $('searchDropdown');
+
     if (!query) {
-      searchResults.classList.add('hidden');
-      setBackBtn(!!activeTopicId);
-      if (!activeTopicId) welcome.classList.remove('hidden');
-      else topicView.classList.remove('hidden');
+      dropdown.classList.add('hidden');
       return;
     }
-    welcome.classList.add('hidden'); topicView.classList.add('hidden');
-    searchResults.classList.remove('hidden'); setBackBtn(true);
 
-    const hits = [];
+    const titleHits = [];
+    const textHits  = [];
+
     CONTENT.categories.forEach(cat => {
       cat.topics.forEach(topic => {
-        const hay = [topic.title, topic.description, ...(topic.tags||[]),
-          ...(topic.sections||[]).flatMap(s =>
-            s.type==='steps' ? s.items.map(i=>i.label+' '+(i.command||'')) : [s.text||''])
-        ].join(' ').toLowerCase();
-        if (hay.includes(query)) hits.push({ cat, topic });
+        const inTitle = topic.title.toLowerCase().includes(query);
+        const inText  = [topic.description, ...(topic.tags || []),
+          ...(topic.sections || []).flatMap(s =>
+            s.type === 'steps'
+              ? s.items.map(i => i.label + ' ' + (i.command || ''))
+              : [s.text || ''])
+        ].join(' ').toLowerCase().includes(query);
+
+        if (inTitle)      titleHits.push({ cat, topic });
+        else if (inText)  textHits.push({ cat, topic });
       });
     });
 
-    if (!hits.length) {
-      searchResults.innerHTML = `<div class="search-no-results"><span class="icon">🔍</span>Nenhum resultado para <strong>"${query}"</strong></div>`;
+    if (!titleHits.length && !textHits.length) {
+      dropdown.innerHTML = `<div class="search-dd-empty">Nenhum resultado para "<strong>${query}</strong>"</div>`;
+      dropdown.classList.remove('hidden');
       return;
     }
-    searchResults.innerHTML = `
-      <div class="search-results-header"><strong>${hits.length}</strong> resultado${hits.length!==1?'s':''} para "${query}"</div>
-      ${hits.map(({cat,topic})=>`
-        <div class="search-result-item" onclick="showTopic_('${cat.id}','${topic.id}')">
-          <div class="search-result-cat" style="color:${cat.color}">${cat.name}</div>
-          <div class="search-result-title">${topic.title}</div>
-          <div class="search-result-desc">${topic.description}</div>
-        </div>`).join('')}`;
-  }
 
-  window.showTopic_ = (catId, topicId) => showTopic(catId, topicId);
+    function renderItem({ cat, topic }, highlight) {
+      const title = highlight ? highlightMatch(topic.title, query) : topic.title;
+      return `<div class="search-dd-item" onclick="selectSearchResult('${cat.id}','${topic.id}')">
+        <div class="search-dd-title">${title}</div>
+        <div class="search-dd-sub">Banco de dados › ${cat.name}</div>
+      </div>`;
+    }
+
+    let html = '';
+    if (titleHits.length) {
+      html += `<div class="search-dd-section">No título (${titleHits.length})</div>`;
+      html += titleHits.map(h => renderItem(h, true)).join('');
+    }
+    if (textHits.length) {
+      html += `<div class="search-dd-section">No texto (${textHits.length})</div>`;
+      html += textHits.map(h => renderItem(h, false)).join('');
+    }
+
+    dropdown.innerHTML = html;
+    dropdown.classList.remove('hidden');
+  }
 
   searchInput.addEventListener('input', e => {
     searchClear.classList.toggle('visible', e.target.value.length > 0);
     doSearch(e.target.value);
   });
+
+  searchInput.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      $('searchDropdown').classList.add('hidden');
+      searchInput.value = '';
+      searchClear.classList.remove('visible');
+    }
+  });
+
   searchClear.addEventListener('click', () => {
-    searchInput.value = ''; searchClear.classList.remove('visible');
-    doSearch(''); searchInput.focus();
+    searchInput.value = '';
+    searchClear.classList.remove('visible');
+    $('searchDropdown').classList.add('hidden');
+    searchInput.focus();
+  });
+
+  document.addEventListener('click', e => {
+    const dropdown      = $('searchDropdown');
+    const searchWrapper = document.querySelector('.search-wrapper');
+    if (!dropdown.classList.contains('hidden') &&
+        !dropdown.contains(e.target) &&
+        !searchWrapper.contains(e.target)) {
+      dropdown.classList.add('hidden');
+    }
   });
 
   // ── WIRE UP EVENTS ──
